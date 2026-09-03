@@ -15,6 +15,10 @@ no build step, no libraries — so it's tiny and works as a static GitHub Pages 
   prices, then hit Create.
 - Each entry's tasks are private to that entry and stay editable anytime —
   add, rename, or remove them whenever you like, before or after creation.
+- **Duplicate** any person or branch from Setup to copy its name, type, tasks,
+  and products into a new independent entry — the copy starts fresh (no
+  checked boxes or quantities carried over) and is fully editable in the
+  Checklist tab right away.
 - **People** get a purchase calculator: fixed prices per product (e.g.
   Small = 12, Big = 22) are set once; entering a quantity in the Checklist tab
   calculates the line total and grand total automatically (2 Big + 1 Small =

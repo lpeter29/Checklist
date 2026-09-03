@@ -324,6 +324,7 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
 }
 .icon-btn:hover { color: #b3423a; border-color: #b3423a; }
 .icon-btn:active { transform: scale(0.94); }
+.icon-btn-duplicate:hover { color: var(--accent); border-color: var(--accent); }
 
 .add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .add-row input[type="text"] {
@@ -393,4 +394,31 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   .topbar { padding: 1.25rem 1.5rem 0.75rem; }
   .tabs { padding: 0 1.5rem; }
   main { padding: 1.5rem; }
+}
+
+/* ---- mobile fit ---- */
+
+@media (max-width: 420px) {
+  main { padding: 0.75rem; }
+  .card, .branch-card, .entity-editor { padding: 0.75rem; }
+  .topbar { padding: 0.75rem 0.75rem 0.6rem; }
+  .topbar h1 { font-size: 1.05rem; }
+
+  .entity-editor-head { gap: 0.35rem; }
+  .entity-editor-head input[type="text"] { flex-basis: 100%; }
+  .entity-editor select { flex: 1; min-width: 0; font-size: 0.8rem; }
+  .icon-btn { flex: 1; text-align: center; padding: 0.4rem 0.3rem; font-size: 0.76rem; }
+
+  .add-row { flex-direction: column; align-items: stretch; }
+  .add-row input, .add-row select, .add-row button { width: 100%; }
+
+  .calc-row { flex-wrap: wrap; row-gap: 0.3rem; }
+  .calc-name { flex: 1 1 100%; }
+  .calc-price { width: auto; }
+  .calc-qty { order: 1; }
+  .calc-line-total { order: 2; flex: 1; text-align: right; width: auto; }
+
+  .branch-head { gap: 0.4rem; }
+  .stat-row .stat-label { flex-direction: column; gap: 0.1rem; }
+  .stat-row .stat-label span:last-child { text-align: left; }
 }

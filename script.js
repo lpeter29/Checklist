@@ -351,6 +351,11 @@
       renderAll();
     });
 
+    var duplicateBtn = document.createElement("button");
+    duplicateBtn.className = "icon-btn icon-btn-duplicate";
+    duplicateBtn.textContent = "Duplicate";
+    duplicateBtn.addEventListener("click", function () { duplicateEntity(entity); });
+
     var removeBtn = document.createElement("button");
     removeBtn.className = "icon-btn";
     removeBtn.textContent = "Remove";
@@ -363,6 +368,7 @@
 
     head.appendChild(nameInput);
     head.appendChild(typeSelect);
+    head.appendChild(duplicateBtn);
     head.appendChild(removeBtn);
     box.appendChild(head);
 
@@ -450,6 +456,21 @@
     }
 
     return box;
+  }
+
+  function duplicateEntity(entity) {
+    var copy = {
+      id: uid("e"),
+      name: entity.name + " (copy)",
+      type: entity.type,
+      tasks: entity.tasks.map(function (t) { return { id: uid("t"), name: t.name }; }),
+      products: entity.products.map(function (p) { return { id: uid("pr"), name: p.name, price: p.price }; })
+    };
+    var idx = state.entities.findIndex(function (e) { return e.id === entity.id; });
+    state.entities.splice(idx + 1, 0, copy);
+    saveState();
+    renderAll();
+    showToast("Duplicated \u2014 edit it below or in Checklist");
   }
 
   function buildSubEditRow(item, onRemove, skipRename) {
