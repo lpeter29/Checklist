@@ -2,64 +2,65 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Monthly Checklist</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="topbar">
-  <h1 id="appTitle">Monthly Checklist</h1>
-  <input type="month" id="monthPicker">
+  <div class="topbar-title-group">
+    <span class="app-indicator"></span>
+    <h1 id="appTitle">Monthly Checklist</h1>
+  </div>
+  <div class="month-picker-wrapper">
+    <input type="month" id="monthPicker">
+  </div>
 </header>
 
-<nav class="tabs">
-  <button class="tab-btn active" data-tab="checklist">Checklist</button>
-  <button class="tab-btn" data-tab="summary">Summary</button>
-  <button class="tab-btn" data-tab="setup">Setup</button>
-</nav>
-
 <main>
-
-  <!-- CHECKLIST -->
   <section id="checklist" class="tab-panel active">
     <div id="checklistEmpty" class="empty-state" hidden>
-      <p>No people or branches yet.</p>
-      <button class="btn btn-primary" data-goto="setup">Add one in Setup</button>
+      <div class="empty-icon">📋</div>
+      <h3>No entities found</h3>
+      <p>Get started by adding people or branches to track.</p>
+      <button class="btn btn-primary" data-goto="setup">Go to Setup</button>
     </div>
-    <div id="checklistList"></div>
+    <div id="checklistList" class="stack-list"></div>
   </section>
 
-  <!-- SUMMARY -->
   <section id="summary" class="tab-panel">
     <div id="summaryEmpty" class="empty-state" hidden>
-      <p>No data to summarize yet.</p>
+      <div class="empty-icon">📊</div>
+      <h3>No data available</h3>
+      <p>Complete some checklist items to view performance metrics.</p>
     </div>
-    <div id="summaryContent">
-      <div class="card">
-        <h2>Overall task completion</h2>
-        <div class="bar"><div id="overallBarFill" class="bar-fill"></div></div>
-        <p id="overallText" class="muted"></p>
+    <div id="summaryContent" class="stack-list">
+      <div class="card premium-card">
+        <h2>Overall Progress</h2>
+        <div class="bar-container">
+          <div class="bar"><div id="overallBarFill" class="bar-fill"></div></div>
+        </div>
+        <p id="overallText" class="muted stat-subtext"></p>
       </div>
 
       <div class="card">
-        <h2>By person / branch</h2>
+        <h2>Performance By Entity</h2>
         <div id="summaryByEntity" class="stat-list"></div>
       </div>
 
-      <div class="card" id="summaryPurchasesCard">
-        <h2>Total collected this month</h2>
-        <p id="totalPurchasesText" class="muted"></p>
+      <div class="card accent-summary-card" id="summaryPurchasesCard">
+        <h2>Total Collections</h2>
+        <div class="large-stat" id="totalPurchasesText">₱0.00</div>
+        <p class="muted">Accumulated across all people this month</p>
       </div>
     </div>
   </section>
 
-  <!-- SETUP -->
   <section id="setup" class="tab-panel">
-
     <div class="card">
-      <h2>Add a person or branch</h2>
-
+      <h2>Add New Entry</h2>
+      
       <div class="type-toggle" id="draftTypeToggle">
         <button type="button" class="toggle-btn active" data-type="person">Person</button>
         <button type="button" class="toggle-btn" data-type="branch">Branch</button>
@@ -70,59 +71,74 @@
         <input type="text" id="draftNameInput" placeholder="e.g. Juan Dela Cruz">
       </label>
 
-      <p class="section-label">Tasks</p>
+      <p class="section-label">Assigned Tasks</p>
       <div id="draftTaskList" class="sub-list"></div>
       <div class="add-row">
-        <input type="text" id="draftTaskInput" placeholder="Add a task">
-        <button class="btn btn-secondary" id="draftTaskAddBtn">Add task</button>
+        <input type="text" id="draftTaskInput" placeholder="Add a task description">
+        <button class="btn btn-secondary" id="draftTaskAddBtn">Add</button>
       </div>
 
       <div id="draftProductsSection">
-        <p class="section-label">Products &amp; fixed price (calculator)</p>
+        <p class="section-label">Products &amp; Pricing Calculator</p>
         <div id="draftProductList" class="sub-list"></div>
-        <div class="add-row">
+        <div class="add-row triple-row">
           <input type="text" id="draftProductNameInput" placeholder="Product name">
           <input type="number" id="draftProductPriceInput" placeholder="Price" min="0" step="0.01">
-          <button class="btn btn-secondary" id="draftProductAddBtn">Add product</button>
+          <button class="btn btn-secondary" id="draftProductAddBtn">Add</button>
         </div>
       </div>
 
-      <button class="btn btn-primary btn-block" id="createEntityBtn">Create</button>
+      <button class="btn btn-primary btn-block" id="createEntityBtn">Create Entry</button>
     </div>
 
     <div class="card">
-      <h2>People &amp; Branches</h2>
-      <p class="muted">Tasks, and products for people, stay editable anytime.</p>
-      <div id="entityList"></div>
+      <h2>Manage Entries</h2>
+      <p class="muted">Modify existing tasks, prices, or change configuration seamlessly.</p>
+      <div id="entityList" class="stack-list"></div>
       <p id="entityListEmpty" class="muted" hidden>None added yet — use the form above.</p>
     </div>
 
     <div class="card">
-      <h2>Template</h2>
-      <label class="field">
-        <span>App title</span>
-        <input type="text" id="titleInput" maxlength="60">
-      </label>
-      <label class="field">
-        <span>Accent color</span>
-        <input type="color" id="colorInput">
-      </label>
+      <h2>Theme &amp; Branding</h2>
+      <div class="grid-2col">
+        <label class="field">
+          <span>App Title</span>
+          <input type="text" id="titleInput" maxlength="60">
+        </label>
+        <label class="field">
+          <span>Accent Color</span>
+          <input type="color" id="colorInput">
+        </label>
+      </div>
     </div>
 
     <div class="card">
-      <h2>Backup</h2>
-      <p class="muted">Save your template and records to a file, or load one back in.</p>
-      <div class="add-row">
-        <button class="btn btn-secondary" id="exportBtn">Export data (.json)</button>
-        <button class="btn btn-secondary" id="importBtn">Import data</button>
+      <h2>Data Backup &amp; Reset</h2>
+      <p class="muted">Securely export your data configuration or restore from a JSON file.</p>
+      <div class="add-row backup-actions">
+        <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+        <button class="btn btn-secondary" id="importBtn">Import Data</button>
         <input type="file" id="importFile" accept="application/json" hidden>
       </div>
-      <button class="btn btn-danger" id="resetBtn">Reset everything</button>
+      <button class="btn btn-danger btn-block" id="resetBtn">Reset All Data</button>
     </div>
-
   </section>
-
 </main>
+
+<nav class="bottom-nav tabs">
+  <button class="tab-btn active" data-tab="checklist">
+    <span class="nav-icon">☑️</span>
+    <span>Checklist</span>
+  </button>
+  <button class="tab-btn" data-tab="summary">
+    <span class="nav-icon">📈</span>
+    <span>Summary</span>
+  </button>
+  <button class="tab-btn" data-tab="setup">
+    <span class="nav-icon">⚙️</span>
+    <span>Setup</span>
+  </button>
+</nav>
 
 <div id="toast" class="toast"></div>
 

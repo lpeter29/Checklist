@@ -5,7 +5,7 @@
 
   var defaultState = {
     title: "Monthly Checklist",
-    color: "#2f6f62",
+    color: "#0f766e",
     entities: [
       {
         id: "e1",
@@ -35,8 +35,6 @@
   };
 
   var state = loadState();
-
-  // in-memory draft for the "add a person or branch" form (not saved until created)
   var draft = { type: "person", tasks: [], products: [] };
 
   var el = {
@@ -83,8 +81,6 @@
     renderDraft();
     renderAll();
   }
-
-  // ---------- state ----------
 
   function loadState() {
     try {
@@ -145,8 +141,6 @@
     saveState();
   }
 
-  // ---------- UI wiring ----------
-
   function bindEvents() {
     el.tabBtns.forEach(function (btn) {
       btn.addEventListener("click", function () { switchTab(btn.getAttribute("data-tab")); });
@@ -169,11 +163,10 @@
 
     el.colorInput.addEventListener("input", function () {
       state.color = el.colorInput.value;
-      document.documentElement.style.setProperty("--accent", state.color);
+      updateAccentColor(state.color);
       saveState();
     });
 
-    // draft: type toggle
     el.draftTypeToggle.querySelectorAll(".toggle-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
         draft.type = btn.getAttribute("data-type");
@@ -184,11 +177,9 @@
       });
     });
 
-    // draft: tasks
     el.draftTaskAddBtn.addEventListener("click", addDraftTask);
     el.draftTaskInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftTask(); });
 
-    // draft: products
     el.draftProductAddBtn.addEventListener("click", addDraftProduct);
     el.draftProductNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
     el.draftProductPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
@@ -200,19 +191,29 @@
     el.importFile.addEventListener("change", importData);
 
     el.resetBtn.addEventListener("click", function () {
-      if (confirm("This clears all people, branches, tasks and records on this device. Continue?")) {
+      if (confirm("This clears all records and items. Continue?")) {
         state = clone(defaultState);
         saveState();
         applyTemplateToUI();
         renderAll();
-        showToast("Reset to a blank template");
+        showToast("Reset to default layout");
       }
     });
+  }
+
+  function updateAccentColor(colorHex) {
+    document.documentElement.style.setProperty("--accent", colorHex);
+    // Convert hex to soft rgba equivalent
+    var r = parseInt(colorHex.slice(1, 3), 16) || 15;
+    var g = parseInt(colorHex.slice(3, 5), 16) || 118;
+    var b = parseInt(colorHex.slice(5, 7), 16) || 110;
+    document.documentElement.style.setProperty("--accent-soft", "rgba(" + r + ", " + g + ", " + b + ", 0.12)");
   }
 
   function switchTab(name) {
     el.tabBtns.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-tab") === name); });
     el.panels.forEach(function (p) { p.classList.toggle("active", p.id === name); });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function applyTemplateToUI() {
@@ -220,7 +221,7 @@
     document.title = state.title;
     el.titleInput.value = state.title;
     el.colorInput.value = state.color;
-    document.documentElement.style.setProperty("--accent", state.color);
+    updateAccentColor(state.color);
   }
 
   function showToast(msg) {
@@ -229,8 +230,6 @@
     clearTimeout(showToast._t);
     showToast._t = setTimeout(function () { el.toast.classList.remove("show"); }, 2200);
   }
-
-  // ---------- draft (add a person or branch) ----------
 
   function addDraftTask() {
     var name = el.draftTaskInput.value.trim();
@@ -267,7 +266,7 @@
       row.className = "edit-row";
       var label = document.createElement("span");
       label.className = "calc-name";
-      label.textContent = product.name + " \u2014 " + formatMoney(product.price) + " ea";
+      label.textContent = product.name + " \u2014 " + formatMoney(product.price);
       var del = document.createElement("button");
       del.className = "icon-btn";
       del.textContent = "Remove";
@@ -300,10 +299,8 @@
     draft = { type: draft.type, tasks: [], products: [] };
     renderDraft();
     renderAll();
-    showToast((draft.type === "person" ? "Person" : "Branch") + " added");
+    showToast((draft.type === "person" ? "Person" : "Branch") + " created successfully");
   }
-
-  // ---------- rendering: setup entity list ----------
 
   function renderAll() {
     renderSetupEntities();
@@ -363,7 +360,7 @@
       state.entities = state.entities.filter(function (e) { return e.id !== entity.id; });
       saveState();
       renderAll();
-      showToast("Removed");
+      showToast("Entry removed");
     });
 
     head.appendChild(nameInput);
@@ -374,7 +371,7 @@
 
     var taskLabel = document.createElement("p");
     taskLabel.className = "section-label";
-    taskLabel.textContent = "Tasks for " + entity.name;
+    taskLabel.textContent = "Tasks";
     box.appendChild(taskLabel);
 
     var taskSubList = document.createElement("div");
@@ -392,7 +389,7 @@
     taskAddRow.className = "add-row";
     var taskInput = document.createElement("input");
     taskInput.type = "text";
-    taskInput.placeholder = "Add a task";
+    taskInput.placeholder = "Add task";
     var taskAddBtn = document.createElement("button");
     taskAddBtn.className = "btn btn-secondary";
     taskAddBtn.textContent = "Add";
@@ -413,7 +410,7 @@
     if (entity.type === "person") {
       var prodLabel = document.createElement("p");
       prodLabel.className = "section-label";
-      prodLabel.textContent = "Products & fixed price for " + entity.name;
+      prodLabel.textContent = "Products & Prices";
       box.appendChild(prodLabel);
 
       var prodSubList = document.createElement("div");
@@ -424,7 +421,7 @@
       box.appendChild(prodSubList);
 
       var prodAddRow = document.createElement("div");
-      prodAddRow.className = "add-row";
+      prodAddRow.className = "add-row triple-row";
       var prodNameInput = document.createElement("input");
       prodNameInput.type = "text";
       prodNameInput.placeholder = "Product name";
@@ -436,6 +433,7 @@
       var prodAddBtn = document.createElement("button");
       prodAddBtn.className = "btn btn-secondary";
       prodAddBtn.textContent = "Add";
+      
       var doAddProduct = function () {
         var name = prodNameInput.value.trim();
         var price = Number(prodPriceInput.value);
@@ -449,6 +447,7 @@
       prodAddBtn.addEventListener("click", doAddProduct);
       prodNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
       prodPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
+      
       prodAddRow.appendChild(prodNameInput);
       prodAddRow.appendChild(prodPriceInput);
       prodAddRow.appendChild(prodAddBtn);
@@ -461,7 +460,7 @@
   function duplicateEntity(entity) {
     var copy = {
       id: uid("e"),
-      name: entity.name + " (copy)",
+      name: entity.name + " (Copy)",
       type: entity.type,
       tasks: entity.tasks.map(function (t) { return { id: uid("t"), name: t.name }; }),
       products: entity.products.map(function (p) { return { id: uid("pr"), name: p.name, price: p.price }; })
@@ -470,13 +469,12 @@
     state.entities.splice(idx + 1, 0, copy);
     saveState();
     renderAll();
-    showToast("Duplicated \u2014 edit it below or in Checklist");
+    showToast("Duplicated entry");
   }
 
   function buildSubEditRow(item, onRemove, skipRename) {
     var row = document.createElement("div");
     row.className = "edit-row";
-
     var input = document.createElement("input");
     input.type = "text";
     input.value = item.name;
@@ -489,7 +487,6 @@
         renderSummary();
       }
     });
-
     var del = document.createElement("button");
     del.className = "icon-btn";
     del.textContent = "Remove";
@@ -503,7 +500,6 @@
   function buildProductEditRow(product, entity) {
     var row = document.createElement("div");
     row.className = "edit-row";
-
     var nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.value = product.name;
@@ -542,8 +538,6 @@
     row.appendChild(del);
     return row;
   }
-
-  // ---------- rendering: checklist ----------
 
   function renderChecklist() {
     var monthKey = el.monthPicker.value || currentMonthKey();
@@ -587,7 +581,7 @@
     if (entity.tasks.length === 0) {
       var none = document.createElement("p");
       none.className = "no-tasks";
-      none.textContent = "No tasks assigned yet.";
+      none.textContent = "No tasks assigned.";
       card.appendChild(none);
     }
 
@@ -640,13 +634,13 @@
 
     var title = document.createElement("p");
     title.className = "section-label";
-    title.textContent = "Purchase calculator";
+    title.textContent = "Calculator";
     box.appendChild(title);
 
     var totalLine = document.createElement("div");
     totalLine.className = "calc-total";
     var totalLabel = document.createElement("span");
-    totalLabel.textContent = "Total";
+    totalLabel.textContent = "Total Amount";
     var totalValue = document.createElement("span");
     totalLine.appendChild(totalLabel);
     totalLine.appendChild(totalValue);
@@ -704,10 +698,8 @@
 
   function formatMoney(n) {
     var v = Number(n) || 0;
-    return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return "₱" + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
-
-  // ---------- rendering: summary ----------
 
   function renderSummary() {
     var monthKey = el.monthPicker.value || currentMonthKey();
@@ -757,7 +749,7 @@
       })
       .forEach(function (r) { el.summaryByEntity.appendChild(buildStatRow(r)); });
 
-    el.totalPurchasesText.textContent = "\u20b1" + formatMoney(grandPurchases) + " across all people this month";
+    el.totalPurchasesText.textContent = formatMoney(grandPurchases);
   }
 
   function buildStatRow(item) {
@@ -771,24 +763,22 @@
     name.textContent = item.name + " (" + item.type + ")";
     var stat = document.createElement("span");
     var statText = item.total ? (item.done + "/" + item.total + " \u00b7 " + pct + "%") : "no tasks";
-    if (item.type === "person") statText += " \u00b7 \u20b1" + formatMoney(item.purchaseTotal);
+    if (item.type === "person") statText += " \u00b7 " + formatMoney(item.purchaseTotal);
     stat.textContent = statText;
     labelRow.appendChild(name);
     labelRow.appendChild(stat);
 
-    var bar = document.createElement("div");
-    bar.className = "bar";
+    var barWrap = document.createElement("div");
+    barWrap.className = "bar";
     var fill = document.createElement("div");
     fill.className = "bar-fill";
     fill.style.width = pct + "%";
-    bar.appendChild(fill);
+    barWrap.appendChild(fill);
 
     wrap.appendChild(labelRow);
-    wrap.appendChild(bar);
+    wrap.appendChild(barWrap);
     return wrap;
   }
-
-  // ---------- import / export ----------
 
   function exportData() {
     var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -800,7 +790,7 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast("Exported");
+    showToast("Data exported successfully");
   }
 
   function importData(e) {
@@ -815,9 +805,9 @@
         saveState();
         applyTemplateToUI();
         renderAll();
-        showToast("Data imported");
+        showToast("Data imported successfully");
       } catch (err) {
-        alert("That file doesn't look like a valid checklist export.");
+        alert("Invalid checklist export file.");
       }
       el.importFile.value = "";
     };
