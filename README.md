@@ -10,12 +10,19 @@ no build step, no libraries — so it's tiny and works as a static GitHub Pages 
 - `script.js` — all app logic
 
 ## How it works
-- **Checklist tab** — pick a month, then tick off tasks for each branch/person.
-- **Summary tab** — completion % overall, per branch, and per task.
+- Each entry is either a **Person** or a **Branch**, and each one has its own,
+  separate list of tasks — tasks are not shared between entries.
+- **People** additionally get a purchase calculator: set fixed prices per
+  product (e.g. Small = 12, Big = 22) in Setup, then enter a quantity in the
+  Checklist tab and the line total and grand total calculate automatically.
+- **Checklist tab** — pick a month, then tick off each person/branch's own
+  tasks, and enter purchase quantities for people.
+- **Summary tab** — overall task completion %, a per-entity breakdown, and the
+  total amount collected across all people for the month.
 - **Setup tab** — this is your customizable template:
   - Change the app title and accent color.
-  - Add/rename/remove branches or people.
-  - Add/rename/remove tasks.
+  - Add a person or branch, and manage its own tasks.
+  - For people, manage their product list and fixed prices.
   - Export your data to a `.json` file (backup, or move it to another device),
     or import one back in.
 

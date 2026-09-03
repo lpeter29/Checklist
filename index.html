@@ -24,7 +24,7 @@
   <!-- CHECKLIST -->
   <section id="checklist" class="tab-panel active">
     <div id="checklistEmpty" class="empty-state" hidden>
-      <p>No branches or tasks yet.</p>
+      <p>No people or branches yet.</p>
       <button class="btn" data-goto="setup">Go to Setup</button>
     </div>
     <div id="checklistList"></div>
@@ -37,19 +37,19 @@
     </div>
     <div id="summaryContent">
       <div class="card">
-        <h2>Overall completion</h2>
+        <h2>Overall task completion</h2>
         <div class="bar"><div id="overallBarFill" class="bar-fill"></div></div>
         <p id="overallText" class="muted"></p>
       </div>
 
       <div class="card">
-        <h2>By branch / person</h2>
-        <div id="summaryByBranch" class="stat-list"></div>
+        <h2>By person / branch</h2>
+        <div id="summaryByEntity" class="stat-list"></div>
       </div>
 
-      <div class="card">
-        <h2>By task</h2>
-        <div id="summaryByTask" class="stat-list"></div>
+      <div class="card" id="summaryPurchasesCard">
+        <h2>Total collected this month</h2>
+        <p id="totalPurchasesText" class="muted"></p>
       </div>
     </div>
   </section>
@@ -70,20 +70,16 @@
     </div>
 
     <div class="card">
-      <h2>Branches / People</h2>
-      <div id="peopleList" class="edit-list"></div>
+      <h2>People &amp; Branches</h2>
+      <p class="muted">Each person or branch has its own tasks. People also get a price calculator; branches don't.</p>
+      <div id="entityList"></div>
       <div class="add-row">
-        <input type="text" id="newPersonInput" placeholder="Add branch or person name">
-        <button class="btn" id="addPersonBtn">Add</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Tasks</h2>
-      <div id="taskList" class="edit-list"></div>
-      <div class="add-row">
-        <input type="text" id="newTaskInput" placeholder="Add task name">
-        <button class="btn" id="addTaskBtn">Add</button>
+        <input type="text" id="newEntityInput" placeholder="Name">
+        <select id="newEntityType">
+          <option value="person">Person</option>
+          <option value="branch">Branch</option>
+        </select>
+        <button class="btn" id="addEntityBtn">Add</button>
       </div>
     </div>
 
