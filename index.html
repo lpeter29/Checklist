@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Monthly Checklist</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1 id="appTitle">Monthly Checklist</h1>
+  <input type="month" id="monthPicker">
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="checklist">Checklist</button>
+  <button class="tab-btn" data-tab="summary">Summary</button>
+  <button class="tab-btn" data-tab="setup">Setup</button>
+</nav>
+
+<main>
+
+  <!-- CHECKLIST -->
+  <section id="checklist" class="tab-panel active">
+    <div id="checklistEmpty" class="empty-state" hidden>
+      <p>No branches or tasks yet.</p>
+      <button class="btn" data-goto="setup">Go to Setup</button>
+    </div>
+    <div id="checklistList"></div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section id="summary" class="tab-panel">
+    <div id="summaryEmpty" class="empty-state" hidden>
+      <p>No data to summarize yet.</p>
+    </div>
+    <div id="summaryContent">
+      <div class="card">
+        <h2>Overall completion</h2>
+        <div class="bar"><div id="overallBarFill" class="bar-fill"></div></div>
+        <p id="overallText" class="muted"></p>
+      </div>
+
+      <div class="card">
+        <h2>By branch / person</h2>
+        <div id="summaryByBranch" class="stat-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>By task</h2>
+        <div id="summaryByTask" class="stat-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="setup" class="tab-panel">
+
+    <div class="card">
+      <h2>Template</h2>
+      <label class="field">
+        <span>App title</span>
+        <input type="text" id="titleInput" maxlength="60">
+      </label>
+      <label class="field">
+        <span>Accent color</span>
+        <input type="color" id="colorInput">
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Branches / People</h2>
+      <div id="peopleList" class="edit-list"></div>
+      <div class="add-row">
+        <input type="text" id="newPersonInput" placeholder="Add branch or person name">
+        <button class="btn" id="addPersonBtn">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Tasks</h2>
+      <div id="taskList" class="edit-list"></div>
+      <div class="add-row">
+        <input type="text" id="newTaskInput" placeholder="Add task name">
+        <button class="btn" id="addTaskBtn">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Backup</h2>
+      <p class="muted">Save your template and records to a file, or load one back in.</p>
+      <div class="add-row">
+        <button class="btn" id="exportBtn">Export data (.json)</button>
+        <button class="btn" id="importBtn">Import data</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+      <button class="btn btn-danger" id="resetBtn">Reset everything</button>
+    </div>
+
+  </section>
+
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="script.js"></script>
+</body>
+</html>
