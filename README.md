@@ -10,21 +10,21 @@ no build step, no libraries — so it's tiny and works as a static GitHub Pages 
 - `script.js` — all app logic
 
 ## How it works
-- Each entry is either a **Person** or a **Branch**, and each one has its own,
-  separate list of tasks — tasks are not shared between entries.
-- **People** additionally get a purchase calculator: set fixed prices per
-  product (e.g. Small = 12, Big = 22) in Setup, then enter a quantity in the
-  Checklist tab and the line total and grand total calculate automatically.
-- **Checklist tab** — pick a month, then tick off each person/branch's own
-  tasks, and enter purchase quantities for people.
+- **Setup tab** opens with **Add a person or branch** — pick Person or Branch,
+  give it a name, add its tasks, and (for a person) add products with fixed
+  prices, then hit Create.
+- Each entry's tasks are private to that entry and stay editable anytime —
+  add, rename, or remove them whenever you like, before or after creation.
+- **People** get a purchase calculator: fixed prices per product (e.g.
+  Small = 12, Big = 22) are set once; entering a quantity in the Checklist tab
+  calculates the line total and grand total automatically (2 Big + 1 Small =
+  56.00).
+- **Checklist tab** — pick a month, tick off each entry's own tasks, and enter
+  purchase quantities for people.
 - **Summary tab** — overall task completion %, a per-entity breakdown, and the
   total amount collected across all people for the month.
-- **Setup tab** — this is your customizable template:
-  - Change the app title and accent color.
-  - Add a person or branch, and manage its own tasks.
-  - For people, manage their product list and fixed prices.
-  - Export your data to a `.json` file (backup, or move it to another device),
-    or import one back in.
+- Export your data to a `.json` file (backup, or move it to another device),
+  or import one back in, from the Backup section in Setup.
 
 Data is stored in the browser's `localStorage`, per device/browser — it does not
 sync between phone and desktop automatically. Use Export/Import to move it.

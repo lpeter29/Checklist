@@ -36,6 +36,9 @@
 
   var state = loadState();
 
+  // in-memory draft for the "add a person or branch" form (not saved until created)
+  var draft = { type: "person", tasks: [], products: [] };
+
   var el = {
     appTitle: document.getElementById("appTitle"),
     monthPicker: document.getElementById("monthPicker"),
@@ -52,14 +55,23 @@
     titleInput: document.getElementById("titleInput"),
     colorInput: document.getElementById("colorInput"),
     entityList: document.getElementById("entityList"),
-    newEntityInput: document.getElementById("newEntityInput"),
-    newEntityType: document.getElementById("newEntityType"),
-    addEntityBtn: document.getElementById("addEntityBtn"),
+    entityListEmpty: document.getElementById("entityListEmpty"),
     exportBtn: document.getElementById("exportBtn"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     resetBtn: document.getElementById("resetBtn"),
-    toast: document.getElementById("toast")
+    toast: document.getElementById("toast"),
+    draftTypeToggle: document.getElementById("draftTypeToggle"),
+    draftNameInput: document.getElementById("draftNameInput"),
+    draftTaskList: document.getElementById("draftTaskList"),
+    draftTaskInput: document.getElementById("draftTaskInput"),
+    draftTaskAddBtn: document.getElementById("draftTaskAddBtn"),
+    draftProductsSection: document.getElementById("draftProductsSection"),
+    draftProductList: document.getElementById("draftProductList"),
+    draftProductNameInput: document.getElementById("draftProductNameInput"),
+    draftProductPriceInput: document.getElementById("draftProductPriceInput"),
+    draftProductAddBtn: document.getElementById("draftProductAddBtn"),
+    createEntityBtn: document.getElementById("createEntityBtn")
   };
 
   init();
@@ -68,6 +80,7 @@
     el.monthPicker.value = currentMonthKey();
     applyTemplateToUI();
     bindEvents();
+    renderDraft();
     renderAll();
   }
 
@@ -85,10 +98,7 @@
     }
   }
 
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
+  function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
   function uid(prefix) {
@@ -135,10 +145,6 @@
     saveState();
   }
 
-  function findEntity(id) {
-    return state.entities.filter(function (e) { return e.id === id; })[0];
-  }
-
   // ---------- UI wiring ----------
 
   function bindEvents() {
@@ -167,10 +173,27 @@
       saveState();
     });
 
-    el.addEntityBtn.addEventListener("click", addEntity);
-    el.newEntityInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") addEntity();
+    // draft: type toggle
+    el.draftTypeToggle.querySelectorAll(".toggle-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        draft.type = btn.getAttribute("data-type");
+        el.draftTypeToggle.querySelectorAll(".toggle-btn").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
+      });
     });
+
+    // draft: tasks
+    el.draftTaskAddBtn.addEventListener("click", addDraftTask);
+    el.draftTaskInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftTask(); });
+
+    // draft: products
+    el.draftProductAddBtn.addEventListener("click", addDraftProduct);
+    el.draftProductNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
+    el.draftProductPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
+
+    el.createEntityBtn.addEventListener("click", createEntityFromDraft);
 
     el.exportBtn.addEventListener("click", exportData);
     el.importBtn.addEventListener("click", function () { el.importFile.click(); });
@@ -200,24 +223,87 @@
     document.documentElement.style.setProperty("--accent", state.color);
   }
 
-  function addEntity() {
-    var name = el.newEntityInput.value.trim();
-    if (!name) return;
-    var type = el.newEntityType.value === "branch" ? "branch" : "person";
-    state.entities.push({ id: uid("e"), name: name, type: type, tasks: [], products: [] });
-    el.newEntityInput.value = "";
-    saveState();
-    renderAll();
-  }
-
   function showToast(msg) {
     el.toast.textContent = msg;
-    el.toast.hidden = false;
+    el.toast.classList.add("show");
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(function () { el.toast.hidden = true; }, 2200);
+    showToast._t = setTimeout(function () { el.toast.classList.remove("show"); }, 2200);
   }
 
-  // ---------- rendering: setup ----------
+  // ---------- draft (add a person or branch) ----------
+
+  function addDraftTask() {
+    var name = el.draftTaskInput.value.trim();
+    if (!name) return;
+    draft.tasks.push({ id: uid("t"), name: name });
+    el.draftTaskInput.value = "";
+    renderDraft();
+  }
+
+  function addDraftProduct() {
+    var name = el.draftProductNameInput.value.trim();
+    var price = Number(el.draftProductPriceInput.value);
+    if (!name || isNaN(price) || price < 0) return;
+    draft.products.push({ id: uid("pr"), name: name, price: price });
+    el.draftProductNameInput.value = "";
+    el.draftProductPriceInput.value = "";
+    renderDraft();
+  }
+
+  function renderDraft() {
+    el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
+
+    el.draftTaskList.innerHTML = "";
+    draft.tasks.forEach(function (task) {
+      el.draftTaskList.appendChild(buildSubEditRow(task, function () {
+        draft.tasks = draft.tasks.filter(function (t) { return t.id !== task.id; });
+        renderDraft();
+      }, true));
+    });
+
+    el.draftProductList.innerHTML = "";
+    draft.products.forEach(function (product) {
+      var row = document.createElement("div");
+      row.className = "edit-row";
+      var label = document.createElement("span");
+      label.className = "calc-name";
+      label.textContent = product.name + " \u2014 " + formatMoney(product.price) + " ea";
+      var del = document.createElement("button");
+      del.className = "icon-btn";
+      del.textContent = "Remove";
+      del.addEventListener("click", function () {
+        draft.products = draft.products.filter(function (p) { return p.id !== product.id; });
+        renderDraft();
+      });
+      row.appendChild(label);
+      row.appendChild(del);
+      el.draftProductList.appendChild(row);
+    });
+  }
+
+  function createEntityFromDraft() {
+    var name = el.draftNameInput.value.trim();
+    if (!name) {
+      el.draftNameInput.focus();
+      return;
+    }
+    state.entities.push({
+      id: uid("e"),
+      name: name,
+      type: draft.type,
+      tasks: draft.tasks,
+      products: draft.type === "person" ? draft.products : []
+    });
+    saveState();
+
+    el.draftNameInput.value = "";
+    draft = { type: draft.type, tasks: [], products: [] };
+    renderDraft();
+    renderAll();
+    showToast((draft.type === "person" ? "Person" : "Branch") + " added");
+  }
+
+  // ---------- rendering: setup entity list ----------
 
   function renderAll() {
     renderSetupEntities();
@@ -227,6 +313,7 @@
 
   function renderSetupEntities() {
     el.entityList.innerHTML = "";
+    el.entityListEmpty.hidden = state.entities.length > 0;
     state.entities.forEach(function (entity) {
       el.entityList.appendChild(buildEntityEditor(entity));
     });
@@ -236,7 +323,6 @@
     var box = document.createElement("div");
     box.className = "entity-editor";
 
-    // head: name + type + remove
     var head = document.createElement("div");
     head.className = "entity-editor-head";
 
@@ -272,6 +358,7 @@
       state.entities = state.entities.filter(function (e) { return e.id !== entity.id; });
       saveState();
       renderAll();
+      showToast("Removed");
     });
 
     head.appendChild(nameInput);
@@ -279,7 +366,6 @@
     head.appendChild(removeBtn);
     box.appendChild(head);
 
-    // tasks
     var taskLabel = document.createElement("p");
     taskLabel.className = "section-label";
     taskLabel.textContent = "Tasks for " + entity.name;
@@ -302,7 +388,7 @@
     taskInput.type = "text";
     taskInput.placeholder = "Add a task";
     var taskAddBtn = document.createElement("button");
-    taskAddBtn.className = "btn";
+    taskAddBtn.className = "btn btn-secondary";
     taskAddBtn.textContent = "Add";
     var doAddTask = function () {
       var name = taskInput.value.trim();
@@ -318,7 +404,6 @@
     taskAddRow.appendChild(taskAddBtn);
     box.appendChild(taskAddRow);
 
-    // products (person only)
     if (entity.type === "person") {
       var prodLabel = document.createElement("p");
       prodLabel.className = "section-label";
@@ -343,7 +428,7 @@
       prodPriceInput.min = "0";
       prodPriceInput.step = "0.01";
       var prodAddBtn = document.createElement("button");
-      prodAddBtn.className = "btn";
+      prodAddBtn.className = "btn btn-secondary";
       prodAddBtn.textContent = "Add";
       var doAddProduct = function () {
         var name = prodNameInput.value.trim();
@@ -367,7 +452,7 @@
     return box;
   }
 
-  function buildSubEditRow(item, onRemove) {
+  function buildSubEditRow(item, onRemove, skipRename) {
     var row = document.createElement("div");
     row.className = "edit-row";
 
@@ -377,9 +462,11 @@
     input.addEventListener("change", function () {
       item.name = input.value.trim() || item.name;
       input.value = item.name;
-      saveState();
-      renderChecklist();
-      renderSummary();
+      if (!skipRename) {
+        saveState();
+        renderChecklist();
+        renderSummary();
+      }
     });
 
     var del = document.createElement("button");
@@ -632,13 +719,7 @@
         grandPurchases += purchaseTotal;
       }
 
-      return {
-        name: entity.name,
-        type: entity.type,
-        done: done,
-        total: entity.tasks.length,
-        purchaseTotal: purchaseTotal
-      };
+      return { name: entity.name, type: entity.type, done: done, total: entity.tasks.length, purchaseTotal: purchaseTotal };
     });
 
     var overallPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;

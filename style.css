@@ -1,5 +1,6 @@
 :root {
   --accent: #2f6f62;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   --bg: #fbfbfa;
   --surface: #ffffff;
   --text: #1f2430;
@@ -36,6 +37,12 @@ body {
   font-size: 0.9rem;
   background: var(--surface);
   color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.topbar input[type="month"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .tabs {
@@ -55,13 +62,10 @@ body {
   cursor: pointer;
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
-
-.tab-btn.active {
-  color: var(--text);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
-}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
 
 main { max-width: 640px; margin: 0 auto; padding: 1rem; }
 
@@ -77,6 +81,19 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
 }
 
 .card h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+
+/* ---- entrance animation ---- */
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.branch-card, .entity-editor { animation: popIn 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .branch-card, .entity-editor { animation: none; }
+}
 
 /* ---- checklist entity cards ---- */
 
@@ -98,14 +115,13 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
 }
 
 .branch-head-left { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-
 .branch-head h3 { margin: 0; font-size: 1rem; }
 
 .type-tag {
   font-size: 0.72rem;
   text-transform: lowercase;
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: var(--accent-soft);
   border-radius: 999px;
   padding: 0.1rem 0.55rem;
 }
@@ -120,11 +136,7 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   white-space: nowrap;
 }
 
-.section-label {
-  font-size: 0.78rem;
-  color: var(--muted);
-  margin: 0.6rem 0 0.3rem;
-}
+.section-label { font-size: 0.78rem; color: var(--muted); margin: 0.6rem 0 0.3rem; }
 
 .task-row {
   display: flex;
@@ -133,7 +145,6 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   padding: 0.4rem 0;
   border-top: 1px solid var(--border);
 }
-
 .task-row:first-of-type { border-top: none; }
 
 .task-row input[type="checkbox"] {
@@ -141,26 +152,20 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   height: 1.15rem;
   accent-color: var(--accent);
   flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.12s ease;
 }
+.task-row input[type="checkbox"]:active { transform: scale(0.85); }
 
-.task-row label { font-size: 0.92rem; }
+.task-row label { font-size: 0.92rem; cursor: pointer; }
 
 .no-tasks { font-size: 0.85rem; color: var(--muted); padding: 0.3rem 0; }
 
 /* ---- calculator ---- */
 
-.calc-box {
-  margin-top: 0.6rem;
-  border-top: 1px dashed var(--border);
-  padding-top: 0.6rem;
-}
+.calc-box { margin-top: 0.6rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }
 
-.calc-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0;
-}
+.calc-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; }
 
 .calc-name { flex: 1; font-size: 0.9rem; }
 .calc-price { font-size: 0.8rem; color: var(--muted); width: 4.2rem; }
@@ -172,7 +177,9 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   padding: 0.3rem 0.4rem;
   font-size: 0.9rem;
   text-align: center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.calc-qty:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .calc-line-total { width: 4.5rem; text-align: right; font-size: 0.88rem; }
 
@@ -196,8 +203,7 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   overflow: hidden;
   margin-bottom: 0.5rem;
 }
-
-.bar-fill { height: 100%; background: var(--accent); width: 0%; }
+.bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; }
 
 .stat-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .stat-row { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -210,8 +216,43 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
 .empty-state { text-align: center; color: var(--muted); padding: 2rem 1rem; }
 
 .field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.75rem; font-size: 0.88rem; }
-.field input { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.6rem; font-size: 0.92rem; }
-.field input[type="color"] { padding: 0.15rem; height: 2.4rem; width: 4rem; }
+.field input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.92rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field input[type="color"] { padding: 0.15rem; height: 2.4rem; width: 4rem; cursor: pointer; }
+
+/* ---- type toggle (segmented control) ---- */
+
+.type-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.6rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.toggle-btn:hover { border-color: var(--accent); color: var(--text); }
+.toggle-btn:active { transform: scale(0.97); }
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 6px var(--accent-soft);
+}
 
 /* ---- setup: entity editor ---- */
 
@@ -220,14 +261,10 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   border-radius: var(--radius);
   padding: 0.75rem;
   margin-bottom: 0.75rem;
+  transition: box-shadow 0.15s ease;
 }
 
-.entity-editor-head {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
+.entity-editor-head { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
 
 .entity-editor-head input[type="text"] {
   flex: 1;
@@ -236,7 +273,9 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   border-radius: var(--radius);
   padding: 0.45rem 0.6rem;
   font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.entity-editor-head input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .entity-editor select {
   border: 1px solid var(--border);
@@ -245,7 +284,10 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   font-size: 0.85rem;
   background: var(--surface);
   color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
 }
+.entity-editor select:focus { outline: none; border-color: var(--accent); }
 
 .sub-list { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.4rem 0; }
 
@@ -256,14 +298,18 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   border-radius: var(--radius);
   padding: 0.4rem 0.55rem;
   font-size: 0.87rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.edit-row input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .edit-row input[type="number"] {
   width: 4.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.4rem 0.5rem;
   font-size: 0.87rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.edit-row input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .icon-btn {
   border: 1px solid var(--border);
@@ -274,7 +320,10 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   font-size: 0.8rem;
   color: var(--muted);
   flex-shrink: 0;
+  transition: transform 0.12s ease, background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
+.icon-btn:hover { color: #b3423a; border-color: #b3423a; }
+.icon-btn:active { transform: scale(0.94); }
 
 .add-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .add-row input[type="text"] {
@@ -284,22 +333,18 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   border-radius: var(--radius);
   padding: 0.5rem 0.6rem;
   font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+.add-row input[type="text"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .add-row input[type="number"] {
   width: 5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.5rem 0.5rem;
   font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.add-row select {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.5rem;
-  font-size: 0.88rem;
-  background: var(--surface);
-  color: var(--text);
-}
+.add-row input[type="number"]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
 .btn {
   border: 1px solid var(--accent);
@@ -309,22 +354,40 @@ main { max-width: 640px; margin: 0 auto; padding: 1rem; }
   padding: 0.5rem 0.9rem;
   font-size: 0.88rem;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
-.btn:active { opacity: 0.85; }
+.btn:hover { box-shadow: 0 3px 10px var(--accent-soft); transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.97); box-shadow: none; }
+
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-secondary:hover { box-shadow: 0 3px 10px var(--accent-soft); }
+
+.btn-block { display: block; width: 100%; margin-top: 0.75rem; text-align: center; }
 
 .btn-danger { background: var(--surface); color: #b3423a; border-color: #b3423a; margin-top: 0.5rem; }
+.btn-danger:hover { box-shadow: 0 3px 10px rgba(179, 66, 58, 0.18); }
 
 .toast {
   position: fixed;
   bottom: 1rem;
   left: 50%;
-  transform: translateX(-50%);
   background: var(--text);
   color: #fff;
   padding: 0.55rem 1rem;
   border-radius: var(--radius);
   font-size: 0.85rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 6px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
+.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 
 @media (min-width: 640px) {
   .topbar { padding: 1.25rem 1.5rem 0.75rem; }

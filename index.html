@@ -25,7 +25,7 @@
   <section id="checklist" class="tab-panel active">
     <div id="checklistEmpty" class="empty-state" hidden>
       <p>No people or branches yet.</p>
-      <button class="btn" data-goto="setup">Go to Setup</button>
+      <button class="btn btn-primary" data-goto="setup">Add one in Setup</button>
     </div>
     <div id="checklistList"></div>
   </section>
@@ -58,6 +58,46 @@
   <section id="setup" class="tab-panel">
 
     <div class="card">
+      <h2>Add a person or branch</h2>
+
+      <div class="type-toggle" id="draftTypeToggle">
+        <button type="button" class="toggle-btn active" data-type="person">Person</button>
+        <button type="button" class="toggle-btn" data-type="branch">Branch</button>
+      </div>
+
+      <label class="field">
+        <span>Name</span>
+        <input type="text" id="draftNameInput" placeholder="e.g. Juan Dela Cruz">
+      </label>
+
+      <p class="section-label">Tasks</p>
+      <div id="draftTaskList" class="sub-list"></div>
+      <div class="add-row">
+        <input type="text" id="draftTaskInput" placeholder="Add a task">
+        <button class="btn btn-secondary" id="draftTaskAddBtn">Add task</button>
+      </div>
+
+      <div id="draftProductsSection">
+        <p class="section-label">Products &amp; fixed price (calculator)</p>
+        <div id="draftProductList" class="sub-list"></div>
+        <div class="add-row">
+          <input type="text" id="draftProductNameInput" placeholder="Product name">
+          <input type="number" id="draftProductPriceInput" placeholder="Price" min="0" step="0.01">
+          <button class="btn btn-secondary" id="draftProductAddBtn">Add product</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="createEntityBtn">Create</button>
+    </div>
+
+    <div class="card">
+      <h2>People &amp; Branches</h2>
+      <p class="muted">Tasks, and products for people, stay editable anytime.</p>
+      <div id="entityList"></div>
+      <p id="entityListEmpty" class="muted" hidden>None added yet — use the form above.</p>
+    </div>
+
+    <div class="card">
       <h2>Template</h2>
       <label class="field">
         <span>App title</span>
@@ -70,25 +110,11 @@
     </div>
 
     <div class="card">
-      <h2>People &amp; Branches</h2>
-      <p class="muted">Each person or branch has its own tasks. People also get a price calculator; branches don't.</p>
-      <div id="entityList"></div>
-      <div class="add-row">
-        <input type="text" id="newEntityInput" placeholder="Name">
-        <select id="newEntityType">
-          <option value="person">Person</option>
-          <option value="branch">Branch</option>
-        </select>
-        <button class="btn" id="addEntityBtn">Add</button>
-      </div>
-    </div>
-
-    <div class="card">
       <h2>Backup</h2>
       <p class="muted">Save your template and records to a file, or load one back in.</p>
       <div class="add-row">
-        <button class="btn" id="exportBtn">Export data (.json)</button>
-        <button class="btn" id="importBtn">Import data</button>
+        <button class="btn btn-secondary" id="exportBtn">Export data (.json)</button>
+        <button class="btn btn-secondary" id="importBtn">Import data</button>
         <input type="file" id="importFile" accept="application/json" hidden>
       </div>
       <button class="btn btn-danger" id="resetBtn">Reset everything</button>
@@ -98,7 +124,7 @@
 
 </main>
 
-<div id="toast" class="toast" hidden></div>
+<div id="toast" class="toast"></div>
 
 <script src="script.js"></script>
 </body>
