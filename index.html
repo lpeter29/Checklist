@@ -19,16 +19,41 @@
 </header>
 
 <main>
-  <section id="checklist" class="tab-panel active">
-    <div id="checklistEmpty" class="empty-state" hidden>
-      <div class="empty-icon">📋</div>
-      <h3>No entities found</h3>
-      <p>Get started by adding people or branches to track.</p>
+  <!-- Person Tab -->
+  <section id="person" class="tab-panel active">
+    <div class="filter-bar">
+      <input type="text" id="personSearch" class="search-input" placeholder="Search people...">
+      <select id="personCategoryFilter" class="category-select">
+        <option value="">All Categories</option>
+        <option value="Staff">Staff</option>
+        <option value="Management">Management</option>
+        <option value="Contractor">Contractor</option>
+      </select>
+    </div>
+    <div id="personEmpty" class="empty-state" hidden>
+      <div class="empty-icon">👤</div>
+      <h3>No people found</h3>
+      <p>Get started by adding people in the Setup tab.</p>
       <button class="btn btn-primary" data-goto="setup">Go to Setup</button>
     </div>
-    <div id="checklistList" class="stack-list"></div>
+    <div id="personList" class="grid-cards-2col"></div>
   </section>
 
+  <!-- Branch Tab -->
+  <section id="branch" class="tab-panel">
+    <div class="filter-bar">
+      <input type="text" id="branchSearch" class="search-input" placeholder="Search branches...">
+    </div>
+    <div id="branchEmpty" class="empty-state" hidden>
+      <div class="empty-icon">🏢</div>
+      <h3>No branches found</h3>
+      <p>Get started by adding branches in the Setup tab.</p>
+      <button class="btn btn-primary" data-goto="setup">Go to Setup</button>
+    </div>
+    <div id="branchList" class="grid-cards-2col"></div>
+  </section>
+
+  <!-- Summary Tab -->
   <section id="summary" class="tab-panel">
     <div id="summaryEmpty" class="empty-state" hidden>
       <div class="empty-icon">📊</div>
@@ -57,6 +82,7 @@
     </div>
   </section>
 
+  <!-- Setup Tab -->
   <section id="setup" class="tab-panel">
     <div class="card">
       <h2>Add New Entry</h2>
@@ -69,6 +95,15 @@
       <label class="field">
         <span>Name</span>
         <input type="text" id="draftNameInput" placeholder="e.g. Juan Dela Cruz">
+      </label>
+
+      <label class="field" id="draftCategoryField">
+        <span>Category</span>
+        <select id="draftCategoryInput">
+          <option value="Staff">Staff</option>
+          <option value="Management">Management</option>
+          <option value="Contractor">Contractor</option>
+        </select>
       </label>
 
       <p class="section-label">Assigned Tasks</p>
@@ -93,7 +128,7 @@
 
     <div class="card">
       <h2>Manage Entries</h2>
-      <p class="muted">Modify existing tasks, prices, or change configuration seamlessly.</p>
+      <p class="muted">Modify existing tasks, prices, categories, or change configuration.</p>
       <div id="entityList" class="stack-list"></div>
       <p id="entityListEmpty" class="muted" hidden>None added yet — use the form above.</p>
     </div>
@@ -126,9 +161,13 @@
 </main>
 
 <nav class="bottom-nav tabs">
-  <button class="tab-btn active" data-tab="checklist">
-    <span class="nav-icon">☑️</span>
-    <span>Checklist</span>
+  <button class="tab-btn active" data-tab="person">
+    <span class="nav-icon">👤</span>
+    <span>Person</span>
+  </button>
+  <button class="tab-btn" data-tab="branch">
+    <span class="nav-icon">🏢</span>
+    <span>Branch</span>
   </button>
   <button class="tab-btn" data-tab="summary">
     <span class="nav-icon">📈</span>

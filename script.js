@@ -11,6 +11,7 @@
         id: "e1",
         name: "Juan Dela Cruz",
         type: "person",
+        category: "Staff",
         tasks: [
           { id: "t1", name: "Submitted daily sales report" },
           { id: "t2", name: "Attended morning briefing" }
@@ -24,6 +25,7 @@
         id: "e2",
         name: "Branch A",
         type: "branch",
+        category: "",
         tasks: [
           { id: "t3", name: "Inventory checked" },
           { id: "t4", name: "Cash count reconciled" }
@@ -35,15 +37,20 @@
   };
 
   var state = loadState();
-  var draft = { type: "person", tasks: [], products: [] };
+  var draft = { type: "person", category: "Staff", tasks: [], products: [] };
 
   var el = {
     appTitle: document.getElementById("appTitle"),
     monthPicker: document.getElementById("monthPicker"),
     tabBtns: document.querySelectorAll(".tab-btn"),
     panels: document.querySelectorAll(".tab-panel"),
-    checklistList: document.getElementById("checklistList"),
-    checklistEmpty: document.getElementById("checklistEmpty"),
+    personList: document.getElementById("personList"),
+    personEmpty: document.getElementById("personEmpty"),
+    personSearch: document.getElementById("personSearch"),
+    personCategoryFilter: document.getElementById("personCategoryFilter"),
+    branchList: document.getElementById("branchList"),
+    branchEmpty: document.getElementById("branchEmpty"),
+    branchSearch: document.getElementById("branchSearch"),
     summaryEmpty: document.getElementById("summaryEmpty"),
     summaryContent: document.getElementById("summaryContent"),
     overallBarFill: document.getElementById("overallBarFill"),
@@ -61,6 +68,8 @@
     toast: document.getElementById("toast"),
     draftTypeToggle: document.getElementById("draftTypeToggle"),
     draftNameInput: document.getElementById("draftNameInput"),
+    draftCategoryField: document.getElementById("draftCategoryField"),
+    draftCategoryInput: document.getElementById("draftCategoryInput"),
     draftTaskList: document.getElementById("draftTaskList"),
     draftTaskInput: document.getElementById("draftTaskInput"),
     draftTaskAddBtn: document.getElementById("draftTaskAddBtn"),
@@ -151,9 +160,13 @@
     });
 
     el.monthPicker.addEventListener("change", function () {
-      renderChecklist();
+      renderChecklists();
       renderSummary();
     });
+
+    el.personSearch.addEventListener("input", renderPersonTab);
+    el.personCategoryFilter.addEventListener("change", renderPersonTab);
+    el.branchSearch.addEventListener("input", renderBranchTab);
 
     el.titleInput.addEventListener("input", function () {
       state.title = el.titleInput.value || defaultState.title;
@@ -174,7 +187,12 @@
           b.classList.toggle("active", b === btn);
         });
         el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
+        el.draftCategoryField.style.display = draft.type === "person" ? "flex" : "none";
       });
+    });
+
+    el.draftCategoryInput.addEventListener("change", function () {
+      draft.category = el.draftCategoryInput.value;
     });
 
     el.draftTaskAddBtn.addEventListener("click", addDraftTask);
@@ -203,7 +221,6 @@
 
   function updateAccentColor(colorHex) {
     document.documentElement.style.setProperty("--accent", colorHex);
-    // Convert hex to soft rgba equivalent
     var r = parseInt(colorHex.slice(1, 3), 16) || 15;
     var g = parseInt(colorHex.slice(3, 5), 16) || 118;
     var b = parseInt(colorHex.slice(5, 7), 16) || 110;
@@ -251,6 +268,7 @@
 
   function renderDraft() {
     el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
+    el.draftCategoryField.style.display = draft.type === "person" ? "flex" : "none";
 
     el.draftTaskList.innerHTML = "";
     draft.tasks.forEach(function (task) {
@@ -290,13 +308,14 @@
       id: uid("e"),
       name: name,
       type: draft.type,
+      category: draft.type === "person" ? (el.draftCategoryInput.value || "Staff") : "",
       tasks: draft.tasks,
       products: draft.type === "person" ? draft.products : []
     });
     saveState();
 
     el.draftNameInput.value = "";
-    draft = { type: draft.type, tasks: [], products: [] };
+    draft = { type: draft.type, category: el.draftCategoryInput.value || "Staff", tasks: [], products: [] };
     renderDraft();
     renderAll();
     showToast((draft.type === "person" ? "Person" : "Branch") + " created successfully");
@@ -304,8 +323,66 @@
 
   function renderAll() {
     renderSetupEntities();
-    renderChecklist();
+    renderChecklists();
     renderSummary();
+  }
+
+  function renderChecklists() {
+    renderPersonTab();
+    renderBranchTab();
+  }
+
+  function renderPersonTab() {
+    var monthKey = el.monthPicker.value || currentMonthKey();
+    var query = el.personSearch.value.toLowerCase().trim();
+    var selectedCat = el.personCategoryFilter.value;
+
+    el.personList.innerHTML = "";
+    var people = state.entities.filter(function (e) { return e.type === "person"; });
+
+    var filtered = people.filter(function (p) {
+      var matchesName = p.name.toLowerCase().includes(query);
+      var matchesCat = !selectedCat || p.category === selectedCat;
+      return matchesName && matchesCat;
+    });
+
+    el.personEmpty.hidden = people.length > 0 && filtered.length > 0;
+    if (people.length === 0) {
+      el.personEmpty.querySelector("h3").textContent = "No people found";
+      el.personEmpty.querySelector("p").textContent = "Get started by adding people in the Setup tab.";
+    } else if (filtered.length === 0) {
+      el.personEmpty.querySelector("h3").textContent = "No matching people";
+      el.personEmpty.querySelector("p").textContent = "Try adjusting your search or category filter.";
+    }
+
+    filtered.forEach(function (entity) {
+      el.personList.appendChild(buildEntityCard(entity, monthKey));
+    });
+  }
+
+  function renderBranchTab() {
+    var monthKey = el.monthPicker.value || currentMonthKey();
+    var query = el.branchSearch.value.toLowerCase().trim();
+
+    el.branchList.innerHTML = "";
+    var branches = state.entities.filter(function (e) { return e.type === "branch"; });
+
+    var filtered = branches.filter(function (b) {
+      return b.name.toLowerCase().includes(query);
+    });
+
+    el.branchEmpty.hidden = branches.length > 0 && filtered.length > 0;
+    if (branches.length === 0) {
+      el.branchEmpty.querySelector("h3").textContent = "No branches found";
+      el.branchEmpty.querySelector("p").textContent = "Get started by adding branches in the Setup tab.";
+    } else if (filtered.length === 0) {
+      el.branchEmpty.querySelector("h3").textContent = "No matching branches";
+      el.branchEmpty.querySelector("p").textContent = "Try adjusting your search query.";
+    }
+
+    filtered.forEach(function (entity) {
+      el.branchList.appendChild(buildEntityCard(entity, monthKey));
+    });
   }
 
   function renderSetupEntities() {
@@ -330,7 +407,7 @@
       entity.name = nameInput.value.trim() || entity.name;
       nameInput.value = entity.name;
       saveState();
-      renderChecklist();
+      renderChecklists();
       renderSummary();
     });
 
@@ -342,8 +419,27 @@
       if (entity.type === t) opt.selected = true;
       typeSelect.appendChild(opt);
     });
+
+    var categorySelect = document.createElement("select");
+    ["Staff", "Management", "Contractor"].forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      if (entity.category === c) opt.selected = true;
+      categorySelect.appendChild(opt);
+    });
+    categorySelect.style.display = entity.type === "person" ? "inline-block" : "none";
+
+    categorySelect.addEventListener("change", function () {
+      entity.category = categorySelect.value;
+      saveState();
+      renderChecklists();
+    });
+
     typeSelect.addEventListener("change", function () {
       entity.type = typeSelect.value;
+      if (entity.type === "person" && !entity.category) entity.category = "Staff";
+      categorySelect.style.display = entity.type === "person" ? "inline-block" : "none";
       saveState();
       renderAll();
     });
@@ -365,6 +461,7 @@
 
     head.appendChild(nameInput);
     head.appendChild(typeSelect);
+    if (entity.type === "person") head.appendChild(categorySelect);
     head.appendChild(duplicateBtn);
     head.appendChild(removeBtn);
     box.appendChild(head);
@@ -462,6 +559,7 @@
       id: uid("e"),
       name: entity.name + " (Copy)",
       type: entity.type,
+      category: entity.category || "",
       tasks: entity.tasks.map(function (t) { return { id: uid("t"), name: t.name }; }),
       products: entity.products.map(function (p) { return { id: uid("pr"), name: p.name, price: p.price }; })
     };
@@ -483,7 +581,7 @@
       input.value = item.name;
       if (!skipRename) {
         saveState();
-        renderChecklist();
+        renderChecklists();
         renderSummary();
       }
     });
@@ -505,9 +603,9 @@
     nameInput.value = product.name;
     nameInput.addEventListener("change", function () {
       product.name = nameInput.value.trim() || product.name;
-      nameInput.value = product.name;
+      nameInput.value = nameInput.value.trim() || product.name;
       saveState();
-      renderChecklist();
+      renderChecklists();
     });
 
     var priceInput = document.createElement("input");
@@ -520,7 +618,7 @@
       product.price = isNaN(v) || v < 0 ? product.price : v;
       priceInput.value = product.price;
       saveState();
-      renderChecklist();
+      renderChecklists();
       renderSummary();
     });
 
@@ -539,21 +637,6 @@
     return row;
   }
 
-  function renderChecklist() {
-    var monthKey = el.monthPicker.value || currentMonthKey();
-    el.checklistList.innerHTML = "";
-
-    if (state.entities.length === 0) {
-      el.checklistEmpty.hidden = false;
-      return;
-    }
-    el.checklistEmpty.hidden = true;
-
-    state.entities.forEach(function (entity) {
-      el.checklistList.appendChild(buildEntityCard(entity, monthKey));
-    });
-  }
-
   function buildEntityCard(entity, monthKey) {
     var card = document.createElement("div");
     card.className = "branch-card";
@@ -565,11 +648,15 @@
     left.className = "branch-head-left";
     var h3 = document.createElement("h3");
     h3.textContent = entity.name;
-    var tag = document.createElement("span");
-    tag.className = "type-tag";
-    tag.textContent = entity.type;
+    
     left.appendChild(h3);
-    left.appendChild(tag);
+    
+    if (entity.type === "person" && entity.category) {
+      var catTag = document.createElement("span");
+      catTag.className = "type-tag category-tag";
+      catTag.textContent = entity.category;
+      left.appendChild(catTag);
+    }
 
     var badge = document.createElement("span");
     badge.className = "badge";
@@ -732,7 +819,7 @@
         grandPurchases += purchaseTotal;
       }
 
-      return { name: entity.name, type: entity.type, done: done, total: entity.tasks.length, purchaseTotal: purchaseTotal };
+      return { name: entity.name, type: entity.type, category: entity.category, done: done, total: entity.tasks.length, purchaseTotal: purchaseTotal };
     });
 
     var overallPct = totalTasks ? Math.round((totalDone / totalTasks) * 100) : 0;
@@ -760,7 +847,8 @@
     var labelRow = document.createElement("div");
     labelRow.className = "stat-label";
     var name = document.createElement("span");
-    name.textContent = item.name + " (" + item.type + ")";
+    var labelText = item.name + " (" + item.type + (item.category ? " - " + item.category : "") + ")";
+    name.textContent = labelText;
     var stat = document.createElement("span");
     var statText = item.total ? (item.done + "/" + item.total + " \u00b7 " + pct + "%") : "no tasks";
     if (item.type === "person") statText += " \u00b7 " + formatMoney(item.purchaseTotal);
