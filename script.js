@@ -52,7 +52,6 @@
     branchList: document.getElementById("branchList"),
     branchEmpty: document.getElementById("branchEmpty"),
     branchSearch: document.getElementById("branchSearch"),
-    branchCategoryFilter: document.getElementById("branchCategoryFilter"),
     summaryEmpty: document.getElementById("summaryEmpty"),
     summaryContent: document.getElementById("summaryContent"),
     overallBarFill: document.getElementById("overallBarFill"),
@@ -70,7 +69,6 @@
     quickPersonCategoryInput: document.getElementById("quickPersonCategoryInput"),
     quickPersonAddBtn: document.getElementById("quickPersonAddBtn"),
     quickBranchNameInput: document.getElementById("quickBranchNameInput"),
-    quickBranchCategoryInput: document.getElementById("quickBranchCategoryInput"),
     quickBranchAddBtn: document.getElementById("quickBranchAddBtn")
   };
 
@@ -155,7 +153,6 @@
     el.personSearch.addEventListener("input", renderPersonTab);
     el.personCategoryFilter.addEventListener("change", renderPersonTab);
     el.branchSearch.addEventListener("input", renderBranchTab);
-    el.branchCategoryFilter.addEventListener("change", renderBranchTab);
 
     el.titleInput.addEventListener("input", function () {
       state.title = el.titleInput.value || defaultState.title;
@@ -177,10 +174,10 @@
     });
 
     el.quickBranchAddBtn.addEventListener("click", function () {
-      createEntity("branch", el.quickBranchNameInput, el.quickBranchCategoryInput);
+      createEntity("branch", el.quickBranchNameInput);
     });
     el.quickBranchNameInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") createEntity("branch", el.quickBranchNameInput, el.quickBranchCategoryInput);
+      if (e.key === "Enter") createEntity("branch", el.quickBranchNameInput);
     });
 
     el.exportBtn.addEventListener("click", exportData);
@@ -208,7 +205,7 @@
       id: uid("e"),
       name: name,
       type: type,
-      category: catInput.value || "Loan",
+      category: catInput ? (catInput.value || "Loan") : "",
       tasks: [],
       products: []
     });
@@ -281,15 +278,13 @@
   function renderBranchTab() {
     var monthKey = el.monthPicker.value || currentMonthKey();
     var query = el.branchSearch.value.toLowerCase().trim();
-    var selectedCat = el.branchCategoryFilter.value;
 
     el.branchList.innerHTML = "";
     var branches = state.entities.filter(function (e) { return e.type === "branch"; });
 
     var filtered = branches.filter(function (b) {
       var matchesName = b.name.toLowerCase().includes(query);
-      var matchesCat = !selectedCat || b.category === selectedCat;
-      return matchesName && matchesCat;
+      return matchesName;
     });
 
     el.branchEmpty.hidden = branches.length > 0 && filtered.length > 0;
@@ -317,7 +312,7 @@
 
   function buildEntityCard(entity, monthKey) {
     var card = document.createElement("div");
-    card.className = "branch-card";
+    card.className = entity.type === "person" ? "card" : "branch-card";
 
     var head = document.createElement("div");
     head.className = "branch-head";
@@ -338,28 +333,30 @@
     });
     left.appendChild(nameInput);
 
-    var categorySelect = document.createElement("select");
-    categorySelect.className = "category-select";
-    ["Loan", "Business", "Debt"].forEach(function (c) {
-      var opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      if (entity.category === c) opt.selected = true;
-      categorySelect.appendChild(opt);
-    });
-    categorySelect.addEventListener("change", function () {
-      entity.category = categorySelect.value;
-      saveState();
-      renderChecklists();
-      renderSummary();
-    });
-    left.appendChild(categorySelect);
+    if (entity.type === "person") {
+      var categorySelect = document.createElement("select");
+      categorySelect.className = "category-select";
+      ["Loan", "Business", "Debt"].forEach(function (c) {
+        var opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        if (entity.category === c) opt.selected = true;
+        categorySelect.appendChild(opt);
+      });
+      categorySelect.addEventListener("change", function () {
+        entity.category = categorySelect.value;
+        saveState();
+        renderChecklists();
+        renderSummary();
+      });
+      left.appendChild(categorySelect);
+    }
 
     var rightActions = document.createElement("div");
     rightActions.className = "branch-head-right";
 
     var badge = document.createElement("span");
-    badge.className = "badge";
+    badge.className = "badge badge-" + (entity.category ? entity.category.toLowerCase() : "default");
     rightActions.appendChild(badge);
 
     var duplicateBtn = document.createElement("button");
@@ -408,8 +405,10 @@
       var cbId = "cb_" + entity.id + "_" + task.id;
       cb.id = cbId;
       cb.checked = isTaskChecked(monthKey, entity.id, task.id);
+      if (cb.checked) row.classList.add("done");
       cb.addEventListener("change", function () {
         setTaskChecked(monthKey, entity.id, task.id, cb.checked);
+        row.classList.toggle("done", cb.checked);
         updateTaskBadge(badge, monthKey, entity);
         renderSummary();
       });
@@ -466,8 +465,10 @@
 
     updateTaskBadge(badge, monthKey, entity);
 
-    // Products / Calculator Section
-    card.appendChild(buildCalculator(entity, monthKey));
+    // Products / Calculator Section (person only)
+    if (entity.type === "person") {
+      card.appendChild(buildCalculator(entity, monthKey));
+    }
 
     return card;
   }
@@ -670,7 +671,19 @@
       var catRow = document.createElement("div");
       catRow.className = "stat-row";
       catRow.style.marginBottom = "0.5rem";
-      catRow.innerHTML = '<div class="stat-label"><span><strong>' + cat + '</strong></span><span>' + formatMoney(categoryTotals[cat]) + '</span></div>';
+      var catLabel = document.createElement("div");
+      catLabel.className = "stat-label";
+      var catName = document.createElement("span");
+      var catBadge = document.createElement("span");
+      catBadge.className = "badge badge-" + cat.toLowerCase();
+      catBadge.textContent = cat;
+      catBadge.style.marginRight = "0.35rem";
+      catName.appendChild(catBadge);
+      var catAmount = document.createElement("span");
+      catAmount.textContent = formatMoney(categoryTotals[cat]);
+      catLabel.appendChild(catName);
+      catLabel.appendChild(catAmount);
+      catRow.appendChild(catLabel);
       el.summaryByEntity.appendChild(catRow);
     });
 
@@ -700,8 +713,19 @@
     var labelRow = document.createElement("div");
     labelRow.className = "stat-label";
     var name = document.createElement("span");
-    var labelText = item.name + " (" + item.type + (item.category ? " - " + item.category : "") + ")";
-    name.textContent = labelText;
+
+    // Create name with type badge
+    var nameText = document.createElement("span");
+    nameText.textContent = item.name;
+    name.appendChild(nameText);
+
+    if (item.type) {
+      var typeBadge = document.createElement("span");
+      typeBadge.className = "badge badge-" + (item.category ? item.category.toLowerCase() : (item.type === "branch" ? "default" : "business"));
+      typeBadge.textContent = item.type;
+      typeBadge.style.marginLeft = "0.35rem";
+      name.appendChild(typeBadge);
+    }
     var stat = document.createElement("span");
     var statText = item.total ? (item.done + "/" + item.total + " \u00b7 " + pct + "%") : "no tasks";
     statText += " \u00b7 " + formatMoney(item.purchaseTotal);
@@ -714,6 +738,11 @@
     var fill = document.createElement("div");
     fill.className = "bar-fill";
     fill.style.width = pct + "%";
+    if (item.type === "branch") {
+      fill.style.background = "linear-gradient(90deg, var(--color-branch), #fbbf24)";
+    } else {
+      fill.style.background = "linear-gradient(90deg, var(--color-person), #60a5fa)";
+    }
     barWrap.appendChild(fill);
 
     wrap.appendChild(labelRow);

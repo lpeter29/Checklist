@@ -24,7 +24,7 @@
   <!-- Person Tab -->
   <section id="person" class="tab-panel active">
     <!-- Quick Inline Creator for Person -->
-    <div class="card inline-creator-card">
+    <div class="card inline-creator-card creator-person">
       <h2>Add New Person</h2>
       <div class="add-row triple-row">
         <input type="text" id="quickPersonNameInput" placeholder="Person name">
@@ -57,27 +57,16 @@
   <!-- Branch Tab -->
   <section id="branch" class="tab-panel">
     <!-- Quick Inline Creator for Branch -->
-    <div class="card inline-creator-card">
+    <div class="card inline-creator-card creator-branch">
       <h2>Add New Branch</h2>
-      <div class="add-row triple-row">
+      <div class="add-row">
         <input type="text" id="quickBranchNameInput" placeholder="Branch name">
-        <select id="quickBranchCategoryInput" class="category-select">
-          <option value="Loan">Loan</option>
-          <option value="Business">Business</option>
-          <option value="Debt">Debt</option>
-        </select>
         <button class="btn btn-primary" id="quickBranchAddBtn">Add Branch</button>
       </div>
     </div>
 
     <div class="filter-bar">
       <input type="text" id="branchSearch" class="search-input" placeholder="Search branches...">
-      <select id="branchCategoryFilter" class="category-select">
-        <option value="">All Categories</option>
-        <option value="Loan">Loan</option>
-        <option value="Business">Business</option>
-        <option value="Debt">Debt</option>
-      </select>
     </div>
     <div id="branchEmpty" class="empty-state" hidden>
       <div class="empty-icon">🏢</div>
@@ -95,26 +84,26 @@
       <p>Complete some checklist items to view performance metrics.</p>
     </div>
     <div id="summaryContent" class="stack-list">
-      <div class="card premium-card">
+      <div class="card premium-card summary-progress-card">
         <h2>Overall Progress</h2>
         <div class="bar-container">
-          <div class="bar"><div id="overallBarFill" class="bar-fill"></div></div>
+          <div class="bar bar-lg"><div id="overallBarFill" class="bar-fill"></div></div>
         </div>
         <p id="overallText" class="muted stat-subtext"></p>
       </div>
 
-      <div class="card">
+      <div class="card summary-entity-card">
         <h2>Performance By Entity</h2>
         <div id="summaryByEntity" class="stat-list"></div>
       </div>
 
-      <div class="card accent-summary-card" id="summaryPurchasesCard">
+      <div class="card accent-summary-card summary-collection-card" id="summaryPurchasesCard">
         <h2>Total Collections</h2>
-        <div class="large-stat" id="totalPurchasesText">₱0.00</div>
+        <div class="large-stat" id="totalPurchasesText">&#8369;0.00</div>
         <p class="muted">Accumulated across all items this month</p>
       </div>
 
-      <div class="card">
+      <div class="card summary-settings-card">
         <h2>Theme &amp; Branding</h2>
         <div class="grid-2col">
           <label class="field">
@@ -128,7 +117,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card summary-data-card">
         <h2>Data Backup &amp; Reset</h2>
         <p class="muted">Securely export your data configuration or restore from a JSON file.</p>
         <div class="add-row backup-actions">
@@ -146,14 +135,17 @@
   <button class="tab-btn active" data-tab="person">
     <span class="nav-icon">👤</span>
     <span>Person</span>
+    <span class="tab-indicator"></span>
   </button>
   <button class="tab-btn" data-tab="branch">
     <span class="nav-icon">🏢</span>
     <span>Branch</span>
+    <span class="tab-indicator"></span>
   </button>
   <button class="tab-btn" data-tab="summary">
     <span class="nav-icon">📈</span>
     <span>Summary</span>
+    <span class="tab-indicator"></span>
   </button>
 </nav>
 
