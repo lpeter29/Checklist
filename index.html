@@ -13,42 +13,76 @@
     <span class="app-indicator"></span>
     <h1 id="appTitle">Monthly Checklist</h1>
   </div>
-  <div class="month-picker-wrapper">
-    <input type="month" id="monthPicker">
+  <div class="topbar-actions">
+    <div class="month-picker-wrapper">
+      <input type="month" id="monthPicker">
+    </div>
   </div>
 </header>
 
 <main>
   <!-- Person Tab -->
   <section id="person" class="tab-panel active">
+    <!-- Quick Inline Creator for Person -->
+    <div class="card inline-creator-card">
+      <h2>Add New Person</h2>
+      <div class="add-row triple-row">
+        <input type="text" id="quickPersonNameInput" placeholder="Person name">
+        <select id="quickPersonCategoryInput" class="category-select">
+          <option value="Loan">Loan</option>
+          <option value="Business">Business</option>
+          <option value="Debt">Debt</option>
+        </select>
+        <button class="btn btn-primary" id="quickPersonAddBtn">Add Person</button>
+      </div>
+    </div>
+
     <div class="filter-bar">
       <input type="text" id="personSearch" class="search-input" placeholder="Search people...">
       <select id="personCategoryFilter" class="category-select">
         <option value="">All Categories</option>
-        <option value="Staff">Staff</option>
-        <option value="Management">Management</option>
-        <option value="Contractor">Contractor</option>
+        <option value="Loan">Loan</option>
+        <option value="Business">Business</option>
+        <option value="Debt">Debt</option>
       </select>
     </div>
     <div id="personEmpty" class="empty-state" hidden>
       <div class="empty-icon">👤</div>
       <h3>No people found</h3>
-      <p>Get started by adding people in the Setup tab.</p>
-      <button class="btn btn-primary" data-goto="setup">Go to Setup</button>
+      <p>Get started by adding a person above.</p>
     </div>
     <div id="personList" class="grid-cards-2col"></div>
   </section>
 
   <!-- Branch Tab -->
   <section id="branch" class="tab-panel">
+    <!-- Quick Inline Creator for Branch -->
+    <div class="card inline-creator-card">
+      <h2>Add New Branch</h2>
+      <div class="add-row triple-row">
+        <input type="text" id="quickBranchNameInput" placeholder="Branch name">
+        <select id="quickBranchCategoryInput" class="category-select">
+          <option value="Loan">Loan</option>
+          <option value="Business">Business</option>
+          <option value="Debt">Debt</option>
+        </select>
+        <button class="btn btn-primary" id="quickBranchAddBtn">Add Branch</button>
+      </div>
+    </div>
+
     <div class="filter-bar">
       <input type="text" id="branchSearch" class="search-input" placeholder="Search branches...">
+      <select id="branchCategoryFilter" class="category-select">
+        <option value="">All Categories</option>
+        <option value="Loan">Loan</option>
+        <option value="Business">Business</option>
+        <option value="Debt">Debt</option>
+      </select>
     </div>
     <div id="branchEmpty" class="empty-state" hidden>
       <div class="empty-icon">🏢</div>
       <h3>No branches found</h3>
-      <p>Get started by adding branches in the Setup tab.</p>
-      <button class="btn btn-primary" data-goto="setup">Go to Setup</button>
+      <p>Get started by adding a branch above.</p>
     </div>
     <div id="branchList" class="grid-cards-2col"></div>
   </section>
@@ -77,85 +111,33 @@
       <div class="card accent-summary-card" id="summaryPurchasesCard">
         <h2>Total Collections</h2>
         <div class="large-stat" id="totalPurchasesText">₱0.00</div>
-        <p class="muted">Accumulated across all people this month</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Setup Tab -->
-  <section id="setup" class="tab-panel">
-    <div class="card">
-      <h2>Add New Entry</h2>
-      
-      <div class="type-toggle" id="draftTypeToggle">
-        <button type="button" class="toggle-btn active" data-type="person">Person</button>
-        <button type="button" class="toggle-btn" data-type="branch">Branch</button>
+        <p class="muted">Accumulated across all items this month</p>
       </div>
 
-      <label class="field">
-        <span>Name</span>
-        <input type="text" id="draftNameInput" placeholder="e.g. Juan Dela Cruz">
-      </label>
-
-      <label class="field" id="draftCategoryField">
-        <span>Category</span>
-        <select id="draftCategoryInput">
-          <option value="Staff">Staff</option>
-          <option value="Management">Management</option>
-          <option value="Contractor">Contractor</option>
-        </select>
-      </label>
-
-      <p class="section-label">Assigned Tasks</p>
-      <div id="draftTaskList" class="sub-list"></div>
-      <div class="add-row">
-        <input type="text" id="draftTaskInput" placeholder="Add a task description">
-        <button class="btn btn-secondary" id="draftTaskAddBtn">Add</button>
-      </div>
-
-      <div id="draftProductsSection">
-        <p class="section-label">Products &amp; Pricing Calculator</p>
-        <div id="draftProductList" class="sub-list"></div>
-        <div class="add-row triple-row">
-          <input type="text" id="draftProductNameInput" placeholder="Product name">
-          <input type="number" id="draftProductPriceInput" placeholder="Price" min="0" step="0.01">
-          <button class="btn btn-secondary" id="draftProductAddBtn">Add</button>
+      <div class="card">
+        <h2>Theme &amp; Branding</h2>
+        <div class="grid-2col">
+          <label class="field">
+            <span>App Title</span>
+            <input type="text" id="titleInput" maxlength="60">
+          </label>
+          <label class="field">
+            <span>Accent Color</span>
+            <input type="color" id="colorInput">
+          </label>
         </div>
       </div>
 
-      <button class="btn btn-primary btn-block" id="createEntityBtn">Create Entry</button>
-    </div>
-
-    <div class="card">
-      <h2>Manage Entries</h2>
-      <p class="muted">Modify existing tasks, prices, categories, or change configuration.</p>
-      <div id="entityList" class="stack-list"></div>
-      <p id="entityListEmpty" class="muted" hidden>None added yet — use the form above.</p>
-    </div>
-
-    <div class="card">
-      <h2>Theme &amp; Branding</h2>
-      <div class="grid-2col">
-        <label class="field">
-          <span>App Title</span>
-          <input type="text" id="titleInput" maxlength="60">
-        </label>
-        <label class="field">
-          <span>Accent Color</span>
-          <input type="color" id="colorInput">
-        </label>
+      <div class="card">
+        <h2>Data Backup &amp; Reset</h2>
+        <p class="muted">Securely export your data configuration or restore from a JSON file.</p>
+        <div class="add-row backup-actions">
+          <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+          <button class="btn btn-secondary" id="importBtn">Import Data</button>
+          <input type="file" id="importFile" accept="application/json" hidden>
+        </div>
+        <button class="btn btn-danger btn-block" id="resetBtn">Reset All Data</button>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>Data Backup &amp; Reset</h2>
-      <p class="muted">Securely export your data configuration or restore from a JSON file.</p>
-      <div class="add-row backup-actions">
-        <button class="btn btn-secondary" id="exportBtn">Export Data</button>
-        <button class="btn btn-secondary" id="importBtn">Import Data</button>
-        <input type="file" id="importFile" accept="application/json" hidden>
-      </div>
-      <button class="btn btn-danger btn-block" id="resetBtn">Reset All Data</button>
     </div>
   </section>
 </main>
@@ -172,10 +154,6 @@
   <button class="tab-btn" data-tab="summary">
     <span class="nav-icon">📈</span>
     <span>Summary</span>
-  </button>
-  <button class="tab-btn" data-tab="setup">
-    <span class="nav-icon">⚙️</span>
-    <span>Setup</span>
   </button>
 </nav>
 

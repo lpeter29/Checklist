@@ -11,7 +11,7 @@
         id: "e1",
         name: "Juan Dela Cruz",
         type: "person",
-        category: "Staff",
+        category: "Loan",
         tasks: [
           { id: "t1", name: "Submitted daily sales report" },
           { id: "t2", name: "Attended morning briefing" }
@@ -25,19 +25,20 @@
         id: "e2",
         name: "Branch A",
         type: "branch",
-        category: "",
+        category: "Business",
         tasks: [
           { id: "t3", name: "Inventory checked" },
           { id: "t4", name: "Cash count reconciled" }
         ],
-        products: []
+        products: [
+          { id: "pr3", name: "Branch Fee", price: 100 }
+        ]
       }
     ],
     records: {}
   };
 
   var state = loadState();
-  var draft = { type: "person", category: "Staff", tasks: [], products: [] };
 
   var el = {
     appTitle: document.getElementById("appTitle"),
@@ -51,6 +52,7 @@
     branchList: document.getElementById("branchList"),
     branchEmpty: document.getElementById("branchEmpty"),
     branchSearch: document.getElementById("branchSearch"),
+    branchCategoryFilter: document.getElementById("branchCategoryFilter"),
     summaryEmpty: document.getElementById("summaryEmpty"),
     summaryContent: document.getElementById("summaryContent"),
     overallBarFill: document.getElementById("overallBarFill"),
@@ -59,26 +61,17 @@
     totalPurchasesText: document.getElementById("totalPurchasesText"),
     titleInput: document.getElementById("titleInput"),
     colorInput: document.getElementById("colorInput"),
-    entityList: document.getElementById("entityList"),
-    entityListEmpty: document.getElementById("entityListEmpty"),
     exportBtn: document.getElementById("exportBtn"),
     importBtn: document.getElementById("importBtn"),
     importFile: document.getElementById("importFile"),
     resetBtn: document.getElementById("resetBtn"),
     toast: document.getElementById("toast"),
-    draftTypeToggle: document.getElementById("draftTypeToggle"),
-    draftNameInput: document.getElementById("draftNameInput"),
-    draftCategoryField: document.getElementById("draftCategoryField"),
-    draftCategoryInput: document.getElementById("draftCategoryInput"),
-    draftTaskList: document.getElementById("draftTaskList"),
-    draftTaskInput: document.getElementById("draftTaskInput"),
-    draftTaskAddBtn: document.getElementById("draftTaskAddBtn"),
-    draftProductsSection: document.getElementById("draftProductsSection"),
-    draftProductList: document.getElementById("draftProductList"),
-    draftProductNameInput: document.getElementById("draftProductNameInput"),
-    draftProductPriceInput: document.getElementById("draftProductPriceInput"),
-    draftProductAddBtn: document.getElementById("draftProductAddBtn"),
-    createEntityBtn: document.getElementById("createEntityBtn")
+    quickPersonNameInput: document.getElementById("quickPersonNameInput"),
+    quickPersonCategoryInput: document.getElementById("quickPersonCategoryInput"),
+    quickPersonAddBtn: document.getElementById("quickPersonAddBtn"),
+    quickBranchNameInput: document.getElementById("quickBranchNameInput"),
+    quickBranchCategoryInput: document.getElementById("quickBranchCategoryInput"),
+    quickBranchAddBtn: document.getElementById("quickBranchAddBtn")
   };
 
   init();
@@ -87,7 +80,6 @@
     el.monthPicker.value = currentMonthKey();
     applyTemplateToUI();
     bindEvents();
-    renderDraft();
     renderAll();
   }
 
@@ -155,10 +147,6 @@
       btn.addEventListener("click", function () { switchTab(btn.getAttribute("data-tab")); });
     });
 
-    document.querySelectorAll("[data-goto]").forEach(function (btn) {
-      btn.addEventListener("click", function () { switchTab(btn.getAttribute("data-goto")); });
-    });
-
     el.monthPicker.addEventListener("change", function () {
       renderChecklists();
       renderSummary();
@@ -167,6 +155,7 @@
     el.personSearch.addEventListener("input", renderPersonTab);
     el.personCategoryFilter.addEventListener("change", renderPersonTab);
     el.branchSearch.addEventListener("input", renderBranchTab);
+    el.branchCategoryFilter.addEventListener("change", renderBranchTab);
 
     el.titleInput.addEventListener("input", function () {
       state.title = el.titleInput.value || defaultState.title;
@@ -180,29 +169,19 @@
       saveState();
     });
 
-    el.draftTypeToggle.querySelectorAll(".toggle-btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        draft.type = btn.getAttribute("data-type");
-        el.draftTypeToggle.querySelectorAll(".toggle-btn").forEach(function (b) {
-          b.classList.toggle("active", b === btn);
-        });
-        el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
-        el.draftCategoryField.style.display = draft.type === "person" ? "flex" : "none";
-      });
+    el.quickPersonAddBtn.addEventListener("click", function () {
+      createEntity("person", el.quickPersonNameInput, el.quickPersonCategoryInput);
+    });
+    el.quickPersonNameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") createEntity("person", el.quickPersonNameInput, el.quickPersonCategoryInput);
     });
 
-    el.draftCategoryInput.addEventListener("change", function () {
-      draft.category = el.draftCategoryInput.value;
+    el.quickBranchAddBtn.addEventListener("click", function () {
+      createEntity("branch", el.quickBranchNameInput, el.quickBranchCategoryInput);
     });
-
-    el.draftTaskAddBtn.addEventListener("click", addDraftTask);
-    el.draftTaskInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftTask(); });
-
-    el.draftProductAddBtn.addEventListener("click", addDraftProduct);
-    el.draftProductNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
-    el.draftProductPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") addDraftProduct(); });
-
-    el.createEntityBtn.addEventListener("click", createEntityFromDraft);
+    el.quickBranchNameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") createEntity("branch", el.quickBranchNameInput, el.quickBranchCategoryInput);
+    });
 
     el.exportBtn.addEventListener("click", exportData);
     el.importBtn.addEventListener("click", function () { el.importFile.click(); });
@@ -217,6 +196,26 @@
         showToast("Reset to default layout");
       }
     });
+  }
+
+  function createEntity(type, nameInput, catInput) {
+    var name = nameInput.value.trim();
+    if (!name) {
+      nameInput.focus();
+      return;
+    }
+    state.entities.push({
+      id: uid("e"),
+      name: name,
+      type: type,
+      category: catInput.value || "Loan",
+      tasks: [],
+      products: []
+    });
+    saveState();
+    nameInput.value = "";
+    renderAll();
+    showToast((type === "person" ? "Person" : "Branch") + " created successfully");
   }
 
   function updateAccentColor(colorHex) {
@@ -248,81 +247,7 @@
     showToast._t = setTimeout(function () { el.toast.classList.remove("show"); }, 2200);
   }
 
-  function addDraftTask() {
-    var name = el.draftTaskInput.value.trim();
-    if (!name) return;
-    draft.tasks.push({ id: uid("t"), name: name });
-    el.draftTaskInput.value = "";
-    renderDraft();
-  }
-
-  function addDraftProduct() {
-    var name = el.draftProductNameInput.value.trim();
-    var price = Number(el.draftProductPriceInput.value);
-    if (!name || isNaN(price) || price < 0) return;
-    draft.products.push({ id: uid("pr"), name: name, price: price });
-    el.draftProductNameInput.value = "";
-    el.draftProductPriceInput.value = "";
-    renderDraft();
-  }
-
-  function renderDraft() {
-    el.draftProductsSection.style.display = draft.type === "person" ? "block" : "none";
-    el.draftCategoryField.style.display = draft.type === "person" ? "flex" : "none";
-
-    el.draftTaskList.innerHTML = "";
-    draft.tasks.forEach(function (task) {
-      el.draftTaskList.appendChild(buildSubEditRow(task, function () {
-        draft.tasks = draft.tasks.filter(function (t) { return t.id !== task.id; });
-        renderDraft();
-      }, true));
-    });
-
-    el.draftProductList.innerHTML = "";
-    draft.products.forEach(function (product) {
-      var row = document.createElement("div");
-      row.className = "edit-row";
-      var label = document.createElement("span");
-      label.className = "calc-name";
-      label.textContent = product.name + " \u2014 " + formatMoney(product.price);
-      var del = document.createElement("button");
-      del.className = "icon-btn";
-      del.textContent = "Remove";
-      del.addEventListener("click", function () {
-        draft.products = draft.products.filter(function (p) { return p.id !== product.id; });
-        renderDraft();
-      });
-      row.appendChild(label);
-      row.appendChild(del);
-      el.draftProductList.appendChild(row);
-    });
-  }
-
-  function createEntityFromDraft() {
-    var name = el.draftNameInput.value.trim();
-    if (!name) {
-      el.draftNameInput.focus();
-      return;
-    }
-    state.entities.push({
-      id: uid("e"),
-      name: name,
-      type: draft.type,
-      category: draft.type === "person" ? (el.draftCategoryInput.value || "Staff") : "",
-      tasks: draft.tasks,
-      products: draft.type === "person" ? draft.products : []
-    });
-    saveState();
-
-    el.draftNameInput.value = "";
-    draft = { type: draft.type, category: el.draftCategoryInput.value || "Staff", tasks: [], products: [] };
-    renderDraft();
-    renderAll();
-    showToast((draft.type === "person" ? "Person" : "Branch") + " created successfully");
-  }
-
   function renderAll() {
-    renderSetupEntities();
     renderChecklists();
     renderSummary();
   }
@@ -347,13 +272,6 @@
     });
 
     el.personEmpty.hidden = people.length > 0 && filtered.length > 0;
-    if (people.length === 0) {
-      el.personEmpty.querySelector("h3").textContent = "No people found";
-      el.personEmpty.querySelector("p").textContent = "Get started by adding people in the Setup tab.";
-    } else if (filtered.length === 0) {
-      el.personEmpty.querySelector("h3").textContent = "No matching people";
-      el.personEmpty.querySelector("p").textContent = "Try adjusting your search or category filter.";
-    }
 
     filtered.forEach(function (entity) {
       el.personList.appendChild(buildEntityCard(entity, monthKey));
@@ -363,195 +281,22 @@
   function renderBranchTab() {
     var monthKey = el.monthPicker.value || currentMonthKey();
     var query = el.branchSearch.value.toLowerCase().trim();
+    var selectedCat = el.branchCategoryFilter.value;
 
     el.branchList.innerHTML = "";
     var branches = state.entities.filter(function (e) { return e.type === "branch"; });
 
     var filtered = branches.filter(function (b) {
-      return b.name.toLowerCase().includes(query);
+      var matchesName = b.name.toLowerCase().includes(query);
+      var matchesCat = !selectedCat || b.category === selectedCat;
+      return matchesName && matchesCat;
     });
 
     el.branchEmpty.hidden = branches.length > 0 && filtered.length > 0;
-    if (branches.length === 0) {
-      el.branchEmpty.querySelector("h3").textContent = "No branches found";
-      el.branchEmpty.querySelector("p").textContent = "Get started by adding branches in the Setup tab.";
-    } else if (filtered.length === 0) {
-      el.branchEmpty.querySelector("h3").textContent = "No matching branches";
-      el.branchEmpty.querySelector("p").textContent = "Try adjusting your search query.";
-    }
 
     filtered.forEach(function (entity) {
       el.branchList.appendChild(buildEntityCard(entity, monthKey));
     });
-  }
-
-  function renderSetupEntities() {
-    el.entityList.innerHTML = "";
-    el.entityListEmpty.hidden = state.entities.length > 0;
-    state.entities.forEach(function (entity) {
-      el.entityList.appendChild(buildEntityEditor(entity));
-    });
-  }
-
-  function buildEntityEditor(entity) {
-    var box = document.createElement("div");
-    box.className = "entity-editor";
-
-    var head = document.createElement("div");
-    head.className = "entity-editor-head";
-
-    var nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = entity.name;
-    nameInput.addEventListener("change", function () {
-      entity.name = nameInput.value.trim() || entity.name;
-      nameInput.value = entity.name;
-      saveState();
-      renderChecklists();
-      renderSummary();
-    });
-
-    var typeSelect = document.createElement("select");
-    ["person", "branch"].forEach(function (t) {
-      var opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t === "person" ? "Person" : "Branch";
-      if (entity.type === t) opt.selected = true;
-      typeSelect.appendChild(opt);
-    });
-
-    var categorySelect = document.createElement("select");
-    ["Staff", "Management", "Contractor"].forEach(function (c) {
-      var opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      if (entity.category === c) opt.selected = true;
-      categorySelect.appendChild(opt);
-    });
-    categorySelect.style.display = entity.type === "person" ? "inline-block" : "none";
-
-    categorySelect.addEventListener("change", function () {
-      entity.category = categorySelect.value;
-      saveState();
-      renderChecklists();
-    });
-
-    typeSelect.addEventListener("change", function () {
-      entity.type = typeSelect.value;
-      if (entity.type === "person" && !entity.category) entity.category = "Staff";
-      categorySelect.style.display = entity.type === "person" ? "inline-block" : "none";
-      saveState();
-      renderAll();
-    });
-
-    var duplicateBtn = document.createElement("button");
-    duplicateBtn.className = "icon-btn icon-btn-duplicate";
-    duplicateBtn.textContent = "Duplicate";
-    duplicateBtn.addEventListener("click", function () { duplicateEntity(entity); });
-
-    var removeBtn = document.createElement("button");
-    removeBtn.className = "icon-btn";
-    removeBtn.textContent = "Remove";
-    removeBtn.addEventListener("click", function () {
-      state.entities = state.entities.filter(function (e) { return e.id !== entity.id; });
-      saveState();
-      renderAll();
-      showToast("Entry removed");
-    });
-
-    head.appendChild(nameInput);
-    head.appendChild(typeSelect);
-    if (entity.type === "person") head.appendChild(categorySelect);
-    head.appendChild(duplicateBtn);
-    head.appendChild(removeBtn);
-    box.appendChild(head);
-
-    var taskLabel = document.createElement("p");
-    taskLabel.className = "section-label";
-    taskLabel.textContent = "Tasks";
-    box.appendChild(taskLabel);
-
-    var taskSubList = document.createElement("div");
-    taskSubList.className = "sub-list";
-    entity.tasks.forEach(function (task) {
-      taskSubList.appendChild(buildSubEditRow(task, function () {
-        entity.tasks = entity.tasks.filter(function (t) { return t.id !== task.id; });
-        saveState();
-        renderAll();
-      }));
-    });
-    box.appendChild(taskSubList);
-
-    var taskAddRow = document.createElement("div");
-    taskAddRow.className = "add-row";
-    var taskInput = document.createElement("input");
-    taskInput.type = "text";
-    taskInput.placeholder = "Add task";
-    var taskAddBtn = document.createElement("button");
-    taskAddBtn.className = "btn btn-secondary";
-    taskAddBtn.textContent = "Add";
-    var doAddTask = function () {
-      var name = taskInput.value.trim();
-      if (!name) return;
-      entity.tasks.push({ id: uid("t"), name: name });
-      taskInput.value = "";
-      saveState();
-      renderAll();
-    };
-    taskAddBtn.addEventListener("click", doAddTask);
-    taskInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddTask(); });
-    taskAddRow.appendChild(taskInput);
-    taskAddRow.appendChild(taskAddBtn);
-    box.appendChild(taskAddRow);
-
-    if (entity.type === "person") {
-      var prodLabel = document.createElement("p");
-      prodLabel.className = "section-label";
-      prodLabel.textContent = "Products & Prices";
-      box.appendChild(prodLabel);
-
-      var prodSubList = document.createElement("div");
-      prodSubList.className = "sub-list";
-      entity.products.forEach(function (product) {
-        prodSubList.appendChild(buildProductEditRow(product, entity));
-      });
-      box.appendChild(prodSubList);
-
-      var prodAddRow = document.createElement("div");
-      prodAddRow.className = "add-row triple-row";
-      var prodNameInput = document.createElement("input");
-      prodNameInput.type = "text";
-      prodNameInput.placeholder = "Product name";
-      var prodPriceInput = document.createElement("input");
-      prodPriceInput.type = "number";
-      prodPriceInput.placeholder = "Price";
-      prodPriceInput.min = "0";
-      prodPriceInput.step = "0.01";
-      var prodAddBtn = document.createElement("button");
-      prodAddBtn.className = "btn btn-secondary";
-      prodAddBtn.textContent = "Add";
-      
-      var doAddProduct = function () {
-        var name = prodNameInput.value.trim();
-        var price = Number(prodPriceInput.value);
-        if (!name || isNaN(price) || price < 0) return;
-        entity.products.push({ id: uid("pr"), name: name, price: price });
-        prodNameInput.value = "";
-        prodPriceInput.value = "";
-        saveState();
-        renderAll();
-      };
-      prodAddBtn.addEventListener("click", doAddProduct);
-      prodNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
-      prodPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
-      
-      prodAddRow.appendChild(prodNameInput);
-      prodAddRow.appendChild(prodPriceInput);
-      prodAddRow.appendChild(prodAddBtn);
-      box.appendChild(prodAddRow);
-    }
-
-    return box;
   }
 
   function duplicateEntity(entity) {
@@ -570,73 +315,6 @@
     showToast("Duplicated entry");
   }
 
-  function buildSubEditRow(item, onRemove, skipRename) {
-    var row = document.createElement("div");
-    row.className = "edit-row";
-    var input = document.createElement("input");
-    input.type = "text";
-    input.value = item.name;
-    input.addEventListener("change", function () {
-      item.name = input.value.trim() || item.name;
-      input.value = item.name;
-      if (!skipRename) {
-        saveState();
-        renderChecklists();
-        renderSummary();
-      }
-    });
-    var del = document.createElement("button");
-    del.className = "icon-btn";
-    del.textContent = "Remove";
-    del.addEventListener("click", onRemove);
-
-    row.appendChild(input);
-    row.appendChild(del);
-    return row;
-  }
-
-  function buildProductEditRow(product, entity) {
-    var row = document.createElement("div");
-    row.className = "edit-row";
-    var nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.value = product.name;
-    nameInput.addEventListener("change", function () {
-      product.name = nameInput.value.trim() || product.name;
-      nameInput.value = nameInput.value.trim() || product.name;
-      saveState();
-      renderChecklists();
-    });
-
-    var priceInput = document.createElement("input");
-    priceInput.type = "number";
-    priceInput.min = "0";
-    priceInput.step = "0.01";
-    priceInput.value = product.price;
-    priceInput.addEventListener("change", function () {
-      var v = Number(priceInput.value);
-      product.price = isNaN(v) || v < 0 ? product.price : v;
-      priceInput.value = product.price;
-      saveState();
-      renderChecklists();
-      renderSummary();
-    });
-
-    var del = document.createElement("button");
-    del.className = "icon-btn";
-    del.textContent = "Remove";
-    del.addEventListener("click", function () {
-      entity.products = entity.products.filter(function (p) { return p.id !== product.id; });
-      saveState();
-      renderAll();
-    });
-
-    row.appendChild(nameInput);
-    row.appendChild(priceInput);
-    row.appendChild(del);
-    return row;
-  }
-
   function buildEntityCard(entity, monthKey) {
     var card = document.createElement("div");
     card.className = "branch-card";
@@ -646,35 +324,84 @@
 
     var left = document.createElement("div");
     left.className = "branch-head-left";
-    var h3 = document.createElement("h3");
-    h3.textContent = entity.name;
     
-    left.appendChild(h3);
-    
-    if (entity.type === "person" && entity.category) {
-      var catTag = document.createElement("span");
-      catTag.className = "type-tag category-tag";
-      catTag.textContent = entity.category;
-      left.appendChild(catTag);
-    }
+    var nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "inline-name-input";
+    nameInput.value = entity.name;
+    nameInput.addEventListener("change", function () {
+      entity.name = nameInput.value.trim() || entity.name;
+      nameInput.value = entity.name;
+      saveState();
+      renderChecklists();
+      renderSummary();
+    });
+    left.appendChild(nameInput);
+
+    var categorySelect = document.createElement("select");
+    categorySelect.className = "category-select";
+    ["Loan", "Business", "Debt"].forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      if (entity.category === c) opt.selected = true;
+      categorySelect.appendChild(opt);
+    });
+    categorySelect.addEventListener("change", function () {
+      entity.category = categorySelect.value;
+      saveState();
+      renderChecklists();
+      renderSummary();
+    });
+    left.appendChild(categorySelect);
+
+    var rightActions = document.createElement("div");
+    rightActions.className = "branch-head-right";
 
     var badge = document.createElement("span");
     badge.className = "badge";
+    rightActions.appendChild(badge);
+
+    var duplicateBtn = document.createElement("button");
+    duplicateBtn.className = "icon-btn icon-btn-duplicate";
+    duplicateBtn.textContent = "Copy";
+    duplicateBtn.addEventListener("click", function () { duplicateEntity(entity); });
+    rightActions.appendChild(duplicateBtn);
+
+    var removeBtn = document.createElement("button");
+    removeBtn.className = "icon-btn";
+    removeBtn.textContent = "Delete";
+    removeBtn.addEventListener("click", function () {
+      state.entities = state.entities.filter(function (e) { return e.id !== entity.id; });
+      saveState();
+      renderAll();
+      showToast("Entry removed");
+    });
+    rightActions.appendChild(removeBtn);
 
     head.appendChild(left);
-    head.appendChild(badge);
+    head.appendChild(rightActions);
     card.appendChild(head);
 
+    // Tasks section with inline editing/adding
+    var taskLabel = document.createElement("p");
+    taskLabel.className = "section-label";
+    taskLabel.textContent = "Tasks";
+    card.appendChild(taskLabel);
+
+    var taskSubList = document.createElement("div");
+    taskSubList.className = "sub-list";
+    
     if (entity.tasks.length === 0) {
       var none = document.createElement("p");
       none.className = "no-tasks";
       none.textContent = "No tasks assigned.";
-      card.appendChild(none);
+      taskSubList.appendChild(none);
     }
 
     entity.tasks.forEach(function (task) {
       var row = document.createElement("div");
-      row.className = "task-row";
+      row.className = "task-edit-row";
 
       var cb = document.createElement("input");
       cb.type = "checkbox";
@@ -687,20 +414,60 @@
         renderSummary();
       });
 
-      var label = document.createElement("label");
-      label.setAttribute("for", cbId);
-      label.textContent = task.name;
+      var taskInput = document.createElement("input");
+      taskInput.type = "text";
+      taskInput.value = task.name;
+      taskInput.className = "sub-input";
+      taskInput.addEventListener("change", function () {
+        task.name = taskInput.value.trim() || task.name;
+        taskInput.value = task.name;
+        saveState();
+        renderSummary();
+      });
+
+      var delTask = document.createElement("button");
+      delTask.className = "icon-btn";
+      delTask.textContent = "✕";
+      delTask.addEventListener("click", function () {
+        entity.tasks = entity.tasks.filter(function (t) { return t.id !== task.id; });
+        saveState();
+        renderAll();
+      });
 
       row.appendChild(cb);
-      row.appendChild(label);
-      card.appendChild(row);
+      row.appendChild(taskInput);
+      row.appendChild(delTask);
+      taskSubList.appendChild(row);
     });
+    card.appendChild(taskSubList);
+
+    var taskAddRow = document.createElement("div");
+    taskAddRow.className = "add-row";
+    var taskInputNew = document.createElement("input");
+    taskInputNew.type = "text";
+    taskInputNew.placeholder = "Add task description";
+    var taskAddBtn = document.createElement("button");
+    taskAddBtn.className = "btn btn-secondary";
+    taskAddBtn.textContent = "Add Task";
+    
+    var doAddTask = function () {
+      var name = taskInputNew.value.trim();
+      if (!name) return;
+      entity.tasks.push({ id: uid("t"), name: name });
+      taskInputNew.value = "";
+      saveState();
+      renderAll();
+    };
+    taskAddBtn.addEventListener("click", doAddTask);
+    taskInputNew.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddTask(); });
+    taskAddRow.appendChild(taskInputNew);
+    taskAddRow.appendChild(taskAddBtn);
+    card.appendChild(taskAddRow);
 
     updateTaskBadge(badge, monthKey, entity);
 
-    if (entity.type === "person" && entity.products.length > 0) {
-      card.appendChild(buildCalculator(entity, monthKey));
-    }
+    // Products / Calculator Section
+    card.appendChild(buildCalculator(entity, monthKey));
 
     return card;
   }
@@ -721,16 +488,11 @@
 
     var title = document.createElement("p");
     title.className = "section-label";
-    title.textContent = "Calculator";
+    title.textContent = "Products & Pricing Calculator";
     box.appendChild(title);
 
-    var totalLine = document.createElement("div");
-    totalLine.className = "calc-total";
-    var totalLabel = document.createElement("span");
-    totalLabel.textContent = "Total Amount";
-    var totalValue = document.createElement("span");
-    totalLine.appendChild(totalLabel);
-    totalLine.appendChild(totalValue);
+    var prodSubList = document.createElement("div");
+    prodSubList.className = "sub-list";
 
     function recompute() {
       var grand = 0;
@@ -743,15 +505,32 @@
 
     entity.products.forEach(function (product) {
       var row = document.createElement("div");
-      row.className = "calc-row";
+      row.className = "calc-edit-row";
 
-      var name = document.createElement("span");
-      name.className = "calc-name";
-      name.textContent = product.name;
+      var nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.value = product.name;
+      nameInput.className = "sub-input";
+      nameInput.addEventListener("change", function () {
+        product.name = nameInput.value.trim() || product.name;
+        nameInput.value = product.name;
+        saveState();
+      });
 
-      var price = document.createElement("span");
-      price.className = "calc-price";
-      price.textContent = formatMoney(product.price) + " ea";
+      var priceInput = document.createElement("input");
+      priceInput.type = "number";
+      priceInput.min = "0";
+      priceInput.step = "0.01";
+      priceInput.value = product.price;
+      priceInput.className = "calc-price-input";
+      priceInput.addEventListener("change", function () {
+        var v = Number(priceInput.value);
+        product.price = isNaN(v) || v < 0 ? product.price : v;
+        priceInput.value = product.price;
+        saveState();
+        recompute();
+        renderSummary();
+      });
 
       var qtyInput = document.createElement("input");
       qtyInput.type = "number";
@@ -771,14 +550,66 @@
         renderSummary();
       });
 
-      row.appendChild(name);
-      row.appendChild(price);
+      var del = document.createElement("button");
+      del.className = "icon-btn";
+      del.textContent = "✕";
+      del.addEventListener("click", function () {
+        entity.products = entity.products.filter(function (p) { return p.id !== product.id; });
+        saveState();
+        renderAll();
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(priceInput);
       row.appendChild(qtyInput);
       row.appendChild(lineTotal);
-      box.appendChild(row);
+      row.appendChild(del);
+      prodSubList.appendChild(row);
     });
+    box.appendChild(prodSubList);
 
+    var prodAddRow = document.createElement("div");
+    prodAddRow.className = "add-row triple-row";
+    var prodNameInput = document.createElement("input");
+    prodNameInput.type = "text";
+    prodNameInput.placeholder = "Product name";
+    var prodPriceInput = document.createElement("input");
+    prodPriceInput.type = "number";
+    prodPriceInput.placeholder = "Price";
+    prodPriceInput.min = "0";
+    prodPriceInput.step = "0.01";
+    var prodAddBtn = document.createElement("button");
+    prodAddBtn.className = "btn btn-secondary";
+    prodAddBtn.textContent = "Add Product";
+    
+    var doAddProduct = function () {
+      var name = prodNameInput.value.trim();
+      var price = Number(prodPriceInput.value);
+      if (!name || isNaN(price) || price < 0) return;
+      entity.products.push({ id: uid("pr"), name: name, price: price });
+      prodNameInput.value = "";
+      prodPriceInput.value = "";
+      saveState();
+      renderAll();
+    };
+    prodAddBtn.addEventListener("click", doAddProduct);
+    prodNameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
+    prodPriceInput.addEventListener("keydown", function (e) { if (e.key === "Enter") doAddProduct(); });
+    
+    prodAddRow.appendChild(prodNameInput);
+    prodAddRow.appendChild(prodPriceInput);
+    prodAddRow.appendChild(prodAddBtn);
+    box.appendChild(prodAddRow);
+
+    var totalLine = document.createElement("div");
+    totalLine.className = "calc-total";
+    var totalLabel = document.createElement("span");
+    totalLabel.textContent = "Category Total";
+    var totalValue = document.createElement("span");
+    totalLine.appendChild(totalLabel);
+    totalLine.appendChild(totalValue);
     box.appendChild(totalLine);
+
     recompute();
     return box;
   }
@@ -802,6 +633,7 @@
     var totalTasks = 0;
     var totalDone = 0;
     var grandPurchases = 0;
+    var categoryTotals = {};
 
     var rows = state.entities.map(function (entity) {
       var done = 0;
@@ -812,12 +644,13 @@
       totalDone += done;
 
       var purchaseTotal = 0;
-      if (entity.type === "person") {
-        entity.products.forEach(function (product) {
-          purchaseTotal += getQty(monthKey, entity.id, product.id) * product.price;
-        });
-        grandPurchases += purchaseTotal;
-      }
+      entity.products.forEach(function (product) {
+        purchaseTotal += getQty(monthKey, entity.id, product.id) * product.price;
+      });
+      grandPurchases += purchaseTotal;
+
+      var cat = entity.category || "Unassigned";
+      categoryTotals[cat] = (categoryTotals[cat] || 0) + purchaseTotal;
 
       return { name: entity.name, type: entity.type, category: entity.category, done: done, total: entity.tasks.length, purchaseTotal: purchaseTotal };
     });
@@ -827,6 +660,26 @@
     el.overallText.textContent = totalDone + " of " + totalTasks + " tasks completed (" + overallPct + "%)";
 
     el.summaryByEntity.innerHTML = "";
+    
+    var catSummaryTitle = document.createElement("p");
+    catSummaryTitle.className = "section-label";
+    catSummaryTitle.textContent = "Totals by Category";
+    el.summaryByEntity.appendChild(catSummaryTitle);
+
+    Object.keys(categoryTotals).forEach(function(cat) {
+      var catRow = document.createElement("div");
+      catRow.className = "stat-row";
+      catRow.style.marginBottom = "0.5rem";
+      catRow.innerHTML = '<div class="stat-label"><span><strong>' + cat + '</strong></span><span>' + formatMoney(categoryTotals[cat]) + '</span></div>';
+      el.summaryByEntity.appendChild(catRow);
+    });
+
+    var entityTitleDivider = document.createElement("p");
+    entityTitleDivider.className = "section-label";
+    entityTitleDivider.style.marginTop = "1rem";
+    entityTitleDivider.textContent = "Entity Breakdown";
+    el.summaryByEntity.appendChild(entityTitleDivider);
+
     rows
       .slice()
       .sort(function (a, b) {
@@ -851,7 +704,7 @@
     name.textContent = labelText;
     var stat = document.createElement("span");
     var statText = item.total ? (item.done + "/" + item.total + " \u00b7 " + pct + "%") : "no tasks";
-    if (item.type === "person") statText += " \u00b7 " + formatMoney(item.purchaseTotal);
+    statText += " \u00b7 " + formatMoney(item.purchaseTotal);
     stat.textContent = statText;
     labelRow.appendChild(name);
     labelRow.appendChild(stat);
